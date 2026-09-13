@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#123e32">
+  <meta name="description" content="Оценка здоровья открытых репозиториев SourceCraft: понятные метрики, причины и рекомендации.">
+  <title>Repo Health — здоровье репозиториев</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23123e32'/%3E%3Cpath d='M7 21h7l4-9 5 17 4-8h6' fill='none' stroke='%23b4efba' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Перейти к содержимому</a>
+  <aside class="sidebar">
+    <a class="brand" href="#/repositories" aria-label="Repo Health — главная"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M3 17h7l4-9 5 17 4-8h6"/></svg></span><span>repo<span class="brand-light">health</span><small>АНАЛИТИКА РЕПОЗИТОРИЕВ</small></span></a>
+    <div class="workspace-label">РАБОЧЕЕ ПРОСТРАНСТВО</div>
+    <nav aria-label="Основная навигация">
+      <a href="#/repositories" data-nav="repositories"><span class="nav-icon" aria-hidden="true">▦</span> Репозитории</a>
+      <a href="#/leaderboard" data-nav="leaderboard"><span class="nav-icon" aria-hidden="true">↗</span> Рейтинг</a>
+      <a href="#/methodology" data-nav="methodology"><span class="nav-icon" aria-hidden="true">≡</span> Как считается оценка</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="demo-panel"><span class="small-label">ПОЗНАКОМИТЬСЯ С СЕРВИСОМ</span><p>Три примера. Разное состояние. Понятные причины.</p><button id="demo-toggle" class="button button-soft">Посмотреть демо <span aria-hidden="true">↗</span></button></div>
+      <div class="sidebar-foot"><span class="status-dot"></span> Локальное приложение <span class="version">MVP</span></div>
+    </div>
+  </aside>
+  <div class="shell">
+    <header class="topbar"><div class="breadcrumbs">SourceCraft <span>/</span> <strong id="breadcrumb">Репозитории</strong></div><button class="button button-primary" data-action="open-analysis"><span aria-hidden="true">＋</span> Анализировать репозиторий</button></header>
+    <div id="mode-banner" class="mode-banner" hidden>Демонстрационный режим: все репозитории и показатели вымышлены.<button id="exit-demo">Вернуться к реальным данным →</button></div>
+    <main id="main" tabindex="-1"><div class="loading" role="status">Загружаем рабочее пространство…</div></main>
+    <footer class="page-footer"><span>Repo Health · SourceCraft</span><span>Каждая оценка — с объяснением. <a href="#/methodology">Методика mvp-1.0 ↗</a></span></footer>
+  </div>
+  <dialog id="analysis-dialog" aria-labelledby="analysis-title">
+    <form id="analysis-form">
+      <div class="dialog-top"><span class="eyebrow">НОВЫЙ АНАЛИЗ</span><button type="button" class="icon-button" id="close-dialog" aria-label="Закрыть">×</button></div>
+      <h2 id="analysis-title">Посмотрим, как дела<br>у вашего репозитория</h2>
+      <p class="muted">Укажите открытый репозиторий SourceCraft. Соберём доступные данные и объясним результат.</p>
+      <label for="repository-ref">Адрес или название репозитория</label>
+      <input id="repository-ref" name="ref" placeholder="организация/репозиторий" required maxlength="560" autocomplete="off" spellcheck="false">
+      <p class="input-hint">Например: examples/self-hosted-worker или полный HTTPS-адрес.</p>
+      <div id="form-error" class="inline-error" role="alert" hidden></div>
+      <p class="privacy-note">Исходный код не запускается. Недоступные источники будут отмечены в отчёте.</p>
+      <button id="submit-analysis" class="button button-primary button-full" type="submit">Запустить анализ <span aria-hidden="true">→</span></button>
+    </form>
+  </dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>

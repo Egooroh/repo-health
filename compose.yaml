@@ -1,0 +1,12 @@
+services:
+  repo-health:
+    build: .
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      SOURCECRAFT_TOKEN: ${SOURCECRAFT_TOKEN:-}
+    volumes:
+      - repo-health-data:/data
+    restart: unless-stopped
+volumes:
+  repo-health-data:
