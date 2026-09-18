@@ -32,10 +32,18 @@ type Service struct {
 	log        *slog.Logger
 	wake       chan struct{}
 	timeout    time.Duration
+	personal   bool
 }
 
 func New(store Store, live, demo Collector, log *slog.Logger) *Service {
 	return &Service{store: store, live: live, demo: demo, log: log, wake: make(chan struct{}, 1), timeout: 2 * time.Minute}
+}
+
+// NewPersonal creates a service whose facts and reports never join the public catalog.
+func NewPersonal(store Store, live, demo Collector, log *slog.Logger) *Service {
+	s := New(store, live, demo, log)
+	s.personal = true
+	return s
 }
 
 func (s *Service) Analyze(ctx context.Context, input string, demo bool) (domain.Job, error) {
@@ -59,7 +67,7 @@ func (s *Service) Job(ctx context.Context, id string) (domain.Job, error) {
 func (s *Service) Project(ctx context.Context, id string) (domain.Project, error) {
 	p, err := s.store.GetProject(ctx, id)
 	if p.Report != nil {
-		p.Report.Eligible, p.Report.EligibilityReason = scoring.Eligibility(*p.Report, time.Now().UTC())
+		p.Report.Eligible, p.Report.EligibilityReason = s.eligibility(*p.Report, time.Now().UTC())
 	}
 	return p, err
 }
@@ -72,7 +80,7 @@ func (s *Service) Projects(ctx context.Context, demo, leaderboard bool) ([]domai
 	now := time.Now().UTC()
 	for _, p := range projects {
 		if p.Report != nil {
-			p.Report.Eligible, p.Report.EligibilityReason = scoring.Eligibility(*p.Report, now)
+			p.Report.Eligible, p.Report.EligibilityReason = s.eligibility(*p.Report, now)
 		}
 		if !leaderboard || (p.Report != nil && p.Report.Eligible) {
 			out = append(out, p)
@@ -91,6 +99,16 @@ func (s *Service) Projects(ctx context.Context, demo, leaderboard bool) ([]domai
 		})
 	}
 	return out, nil
+}
+
+func (s *Service) eligibility(r domain.Report, now time.Time) (bool, string) {
+	if s.personal {
+		return false, "Личный отчёт не публикуется в общем рейтинге."
+	}
+	if r.Demo {
+		return scoring.Eligibility(r, now)
+	}
+	return scoring.CurrentEligibility(r, now)
 }
 
 // Run is the single durable-queue worker. Interrupted jobs are recovered at next start.
@@ -139,7 +157,23 @@ func (s *Service) perform(ctx context.Context, j domain.Job) {
 		}
 		return
 	}
-	report := scoring.Calculate(snapshot)
+	var report domain.Report
+	if j.Demo {
+		report = scoring.Calculate(snapshot)
+	} else {
+		profile := "public"
+		if s.personal {
+			profile = "personal"
+		}
+		report, err = scoring.CalculateCurrent(snapshot, profile)
+		if err != nil {
+			if saveErr := s.store.Fail(ctx, j, "Не удалось рассчитать отчёт по новой методике.", false); saveErr != nil {
+				s.log.Error("persist calculation failure", "error", saveErr)
+			}
+			s.log.Error("calculate current methodology", "job", j.ID, "error", err)
+			return
+		}
+	}
 	if err = s.store.Complete(ctx, j, snapshot, report); err != nil {
 		s.log.Error("persist report", "job", j.ID, "error", err)
 		if failErr := s.store.Fail(ctx, j, "Не удалось сохранить результат анализа. Повторите попытку.", false); failErr != nil {

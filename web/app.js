@@ -2,23 +2,31 @@
 
 const main = document.querySelector('#main');
 const dialog = document.querySelector('#analysis-dialog');
-const state = { demo: sessionStorage.getItem('repo-health-demo') === 'true', items: [], search: '', serial: 0, timer: null };
+const state = { connected: false, personal: false, demo: sessionStorage.getItem('repo-health-demo') === 'true', items: [], search: '', serial: 0, timer: null };
 const esc = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const num = value => value == null ? '—' : new Intl.NumberFormat('ru-RU', {maximumFractionDigits:1}).format(value);
 const date = value => value ? new Intl.DateTimeFormat('ru-RU', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}).format(new Date(value)) : 'Ещё не анализировался';
 const scoreClass = score => score == null ? '' : score >= 80 ? 'score-green' : score >= 50 ? 'score-amber' : 'score-red';
 const scoreLabel = score => score == null ? 'Недостаточно данных' : score >= 80 ? 'Хорошее состояние' : score >= 50 ? 'Есть что улучшить' : 'Требует внимания';
 const isPending = job => job && ['queued','running'].includes(job.status);
-const route = () => (location.hash.replace(/^#\/?/, '') || 'repositories').split('/');
+const route = () => { const parts = (location.hash.replace(/^#\/?/, '') || 'repositories').split('/'); return parts[0] === 'personal' ? parts.slice(1) : parts; };
+const viewLink = path => `#/${state.personal && !state.demo ? 'personal/' : ''}${path}`;
 let toastTimer;
 
 async function api(path, body) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 15000);
   try {
-    const response = await fetch(`/api/v1${path}`, { signal:controller.signal, ...(body === undefined ? {} : {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}) });
+    const personal = state.personal && !state.demo && /^\/(analyses|repositories|jobs)(\/|\?|$)/.test(path);
+    const response = await fetch(`/api/v1${personal ? '/personal' : ''}${path}`, { signal:controller.signal, ...(body === undefined ? {} : {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}) });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || 'Не удалось выполнить запрос.');
+    if (!response.ok) {
+      if (response.status === 401 && personal) {
+        state.connected = false; accessUI();
+        main.innerHTML = ''; state.items = [];
+      }
+      throw new Error(data.error || 'Не удалось выполнить запрос.');
+    }
     return data;
   } catch (error) {
     if (error.name === 'AbortError') throw new Error('Сервер не ответил вовремя. Повторите попытку.');
@@ -34,6 +42,9 @@ function toast(message) {
 }
 
 function modeUI() {
+  document.querySelector('#personal-banner').hidden = !state.personal || state.demo;
+  document.querySelector('#access-scope').value = state.personal ? 'personal' : 'public';
+  document.querySelector('[data-nav="repositories"]').href = viewLink('repositories');
   document.querySelector('#mode-banner').hidden = !state.demo;
   document.querySelector('#demo-toggle').innerHTML = state.demo ? 'Реальные репозитории <span aria-hidden="true">↗</span>' : 'Посмотреть демо <span aria-hidden="true">↗</span>';
   sessionStorage.setItem('repo-health-demo', String(state.demo));
@@ -44,7 +55,7 @@ async function toggleDemo() {
   try {
     if (!state.demo) await api('/demo', {});
     state.demo = !state.demo; modeUI(); state.search = '';
-    if (location.hash === '#/repositories') await load(); else location.hash = '#/repositories';
+    if (location.hash === viewLink('repositories')) await load(); else location.hash = viewLink('repositories');
   } catch(error) { toast(error.message); } finally { button.disabled = false; }
 }
 
@@ -54,6 +65,10 @@ document.querySelector('#close-dialog').addEventListener('click', () => dialog.c
 dialog.addEventListener('click', event => { if(event.target === dialog) { const rect=dialog.getBoundingClientRect(); if(event.clientX<rect.left || event.clientX>rect.right || event.clientY<rect.top || event.clientY>rect.bottom) dialog.close(); } });
 
 function openAnalysis() {
+  state.demo = false; modeUI();
+  document.querySelector('#analysis-scope').textContent = state.personal
+    ? 'Личный анализ: результат виден только в вашей сессии.'
+    : 'Публичный анализ: результат попадёт в общий каталог. Для приватного репозитория выберите «Мои анализы».';
   document.querySelector('#form-error').hidden = true;
   dialog.showModal(); document.querySelector('#repository-ref').focus();
 }
@@ -65,7 +80,7 @@ document.querySelector('#analysis-form').addEventListener('submit', async event 
   try {
     const job = await api('/analyses', {ref:document.querySelector('#repository-ref').value, demo:false});
     state.demo = false; modeUI(); dialog.close(); event.target.reset();
-    location.hash = `#/repository/${job.repository_id}`;
+    location.hash = viewLink(`repository/${job.repository_id}`);
     toast('Анализ поставлен в очередь. Результат появится на этой странице.');
     await load();
   } catch(error) { errorBox.textContent = error.message; errorBox.hidden = false; }
@@ -94,11 +109,14 @@ window.addEventListener('hashchange', () => {state.search = '';load();});
 async function load() {
   clearTimeout(state.timer);
   const serial = ++state.serial;
+  state.personal = location.hash.startsWith('#/personal/');
+  if (state.personal) state.demo = false;
   const [page,id] = route();
   const title = ({repositories:'Репозитории',leaderboard:'Рейтинг',methodology:'Методика оценки',repository:'Аналитика репозитория'})[page] || 'Страница не найдена';
   document.querySelector('#breadcrumb').textContent = title;
   document.title = `${title} — Repo Health`;
   document.querySelectorAll('[data-nav]').forEach(link => {const active=link.dataset.nav === (page === 'repository' ? 'repositories' : page);link.classList.toggle('active',active);if(active)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');});
+  if (page === 'leaderboard') state.personal = false;
   modeUI();
   try {
     if (page === 'methodology') { main.innerHTML = methodology(); return; }
@@ -121,7 +139,7 @@ async function load() {
         document.querySelector('#search').setSelectionRange(...searchSelection);
       }
       if(state.items.some(p => isPending(p.job))) state.timer = setTimeout(load, 1200);
-    } else {main.innerHTML = `<div class="empty"><h3>Страница не найдена</h3><a class="button button-primary" href="#/repositories">К репозиториям</a></div>`;}
+    } else {main.innerHTML = `<div class="empty"><h3>Страница не найдена</h3><a class="button button-primary" href="${viewLink('repositories')}">К репозиториям</a></div>`;}
   } catch(error) {
     if(serial !== state.serial) return;
     main.innerHTML = `<div class="error-state" role="alert"><span class="eyebrow">НЕ УДАЛОСЬ ЗАГРУЗИТЬ</span><h2>Попробуем ещё раз?</h2><p>${esc(error.message)}</p><button class="button button-primary" data-action="reload">Повторить</button></div>`;
@@ -133,8 +151,8 @@ function collectionPage(page) {
   const scored = state.items.filter(p => p.report?.score != null);
   const average = scored.length ? scored.reduce((n,p) => n + p.report.score, 0) / scored.length : null;
   const recommendations = state.items.reduce((n,p) => n + (p.report?.recommendations.length || 0), 0);
-  return `<div class="page-heading"><div><span class="eyebrow">${ranking ? 'ОТКРЫТЫЕ ПРОЕКТЫ' : 'ОБЗОР РАБОЧЕГО ПРОСТРАНСТВА'}</span><h1>${ranking ? 'Рейтинг репозиториев' : 'Ваши репозитории'}</h1><p>${ranking ? 'Открытые проекты с актуальной оценкой и достаточными данными.' : 'Состояние проекта, причины оценки и следующий шаг — в одном месте.'}</p></div><span class="tag ${state.demo?'amber':'green'}">${state.demo?'Вымышленные примеры':'Открытые репозитории SourceCraft'}</span></div>
-    <section class="stats" aria-label="Краткая статистика"><div class="stat"><div class="stat-label">${ranking?'В рейтинге':'Всего репозиториев'} <span aria-hidden="true">▦</span></div><div class="stat-number">${state.items.length}</div><div class="stat-note">${state.demo?'Демонстрационные данные':'В этом экземпляре сервиса'}</div></div><div class="stat"><div class="stat-label">Средняя оценка <span aria-hidden="true">↗</span></div><div class="stat-number">${num(average)} <small>/ 100</small></div><div class="stat-note">По ${scored.length} рассчитанным отчётам</div></div><div class="stat"><div class="stat-label">Рекомендации <span aria-hidden="true">≡</span></div><div class="stat-number">${recommendations}</div><div class="stat-note">Конкретные действия для улучшения</div></div></section>
+  return `<div class="page-heading"><div><span class="eyebrow">${ranking ? 'ОТКРЫТЫЕ ПРОЕКТЫ' : 'ОБЗОР РАБОЧЕГО ПРОСТРАНСТВА'}</span><h1>${ranking ? 'Рейтинг репозиториев' : 'Ваши репозитории'}</h1><p>${ranking ? 'Открытые проекты с актуальной оценкой и достаточными данными.' : 'Состояние проекта, причины оценки и следующий шаг — в одном месте.'}</p></div><span class="tag ${state.demo?'amber':'green'}">${state.demo?'Вымышленные примеры':state.personal?'Личные отчёты · без AppSec':'Открытые репозитории SourceCraft'}</span></div>
+    <section class="stats" aria-label="Краткая статистика"><div class="stat"><div class="stat-label">${ranking?'В рейтинге':'Всего репозиториев'} <span aria-hidden="true">▦</span></div><div class="stat-number">${state.items.length}</div><div class="stat-note">${state.demo?'Демонстрационные данные':state.personal?'Только в вашей сессии':'В этом экземпляре сервиса'}</div></div><div class="stat"><div class="stat-label">Средняя оценка <span aria-hidden="true">↗</span></div><div class="stat-number">${num(average)} <small>/ 100</small></div><div class="stat-note">По ${scored.length} рассчитанным отчётам</div></div><div class="stat"><div class="stat-label">Рекомендации <span aria-hidden="true">≡</span></div><div class="stat-number">${recommendations}</div><div class="stat-note">Конкретные действия для улучшения</div></div></section>
     ${!ranking && !state.items.length ? welcome() : ''}
     ${ranking ? '<div class="notice">В рейтинг попадают проанализированные непустые репозитории с полнотой данных от 60% и оценкой не старше 7 дней. Сортировка: балл → полнота данных → название. Это рейтинг проектов, добавленных в этот сервис.</div>' : ''}
     <div class="section-heading"><h2>${ranking ? 'Участники рейтинга' : 'Все проекты'} <span class="count">${state.items.length}</span></h2>${state.items.length?`<input class="search" id="search" aria-label="Поиск по названию или языку" placeholder="Поиск по названию или языку…" value="${esc(state.search)}">`:''}</div><div id="collection"></div>`;
@@ -148,39 +166,39 @@ function renderCollection() {
   const container = document.querySelector('#collection'); if(!container) return;
   const items = state.items.filter(p => `${p.ref} ${p.report?.repository.language || ''}`.toLowerCase().includes(state.search.toLowerCase()));
   if(!items.length) {
-    container.innerHTML = `<div class="empty"><h3>${state.items.length?'Ничего не найдено':route()[0]==='leaderboard'?'Рейтинг пока формируется':'Здесь появятся ваши проекты'}</h3><p>${state.items.length?'Попробуйте другое название или язык.':'Добавьте открытый репозиторий или познакомьтесь с сервисом на демонстрационных примерах.'}</p>${!state.items.length?`<button class="button button-soft" data-action="${state.demo?'open-analysis':'demo'}">${state.demo?'Анализировать реальный репозиторий':'Посмотреть демо →'}</button>`:''}</div>${!state.items.length && route()[0]!=='leaderboard'?'<section class="steps"><div class="step"><span class="step-no">01</span><h3>Добавьте репозиторий</h3><p>Достаточно адреса открытого проекта SourceCraft.</p></div><div class="step"><span class="step-no">02</span><h3>Изучите оценку</h3><p>У каждого показателя есть источник и объяснение.</p></div><div class="step"><span class="step-no">03</span><h3>Выберите следующий шаг</h3><p>Рекомендации связаны с обнаруженными фактами.</p></div></section>':''}`;
+    container.innerHTML = `<div class="empty"><h3>${state.items.length?'Ничего не найдено':route()[0]==='leaderboard'?'Рейтинг пока формируется':'Здесь появятся ваши проекты'}</h3><p>${state.items.length?'Попробуйте другое название или язык.':'Добавьте репозиторий в выбранный раздел или посмотрите демонстрационные примеры.'}</p>${!state.items.length?`<button class="button button-soft" data-action="${state.demo?'open-analysis':'demo'}">${state.demo?'Анализировать реальный репозиторий':'Посмотреть демо →'}</button>`:''}</div>${!state.items.length && route()[0]!=='leaderboard'?'<section class="steps"><div class="step"><span class="step-no">01</span><h3>Добавьте репозиторий</h3><p>Укажите адрес проекта; для приватного подключите токен и выберите «Мои анализы».</p></div><div class="step"><span class="step-no">02</span><h3>Изучите оценку</h3><p>У каждого показателя есть источник и объяснение.</p></div><div class="step"><span class="step-no">03</span><h3>Выберите следующий шаг</h3><p>Рекомендации связаны с обнаруженными фактами.</p></div></section>':''}`;
     return;
   }
   if(route()[0] === 'leaderboard') {
-    container.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Место</th><th>Репозиторий</th><th>Оценка</th><th>Полнота данных</th><th>Последний анализ</th><th><span class="muted">Отчёт</span></th></tr></thead><tbody>${items.map(p=>{const index=state.items.indexOf(p);return `<tr><td><span class="rank ${index===0?'first':''}">${String(index+1).padStart(2,'0')}</span></td><td><a class="table-repo" href="#/repository/${p.id}">${esc(p.ref)}<small>${esc(p.report.repository.language || 'Язык не указан')}${p.demo?' · Демо':''}</small></a></td><td><strong class="${scoreClass(p.report.score)}">${num(p.report.score)}</strong><span class="muted"> / 100</span></td><td>${p.report.coverage}%</td><td class="muted">${date(p.report.analyzed_at)}</td><td><a class="text-link" href="#/repository/${p.id}" aria-label="Отчёт ${esc(p.ref)}">Подробнее ↗</a></td></tr>`}).join('')}</tbody></table></div>`;
+    container.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Место</th><th>Репозиторий</th><th>Оценка</th><th>Полнота данных</th><th>Последний анализ</th><th><span class="muted">Отчёт</span></th></tr></thead><tbody>${items.map(p=>{const index=state.items.indexOf(p);return `<tr><td><span class="rank ${index===0?'first':''}">${String(index+1).padStart(2,'0')}</span></td><td><a class="table-repo" href="${viewLink(`repository/${p.id}`)}">${esc(p.ref)}<small>${esc(p.report.repository.language || 'Язык не указан')}${p.demo?' · Демо':''}</small></a></td><td><strong class="${scoreClass(p.report.score)}">${num(p.report.score)}</strong><span class="muted"> / 100</span></td><td>${p.report.coverage}%</td><td class="muted">${date(p.report.analyzed_at)}</td><td><a class="text-link" href="${viewLink(`repository/${p.id}`)}" aria-label="Отчёт ${esc(p.ref)}">Подробнее ↗</a></td></tr>`}).join('')}</tbody></table></div>`;
   } else {container.innerHTML = `<div class="cards">${items.map(card).join('')}</div>`;}
 }
 
 function statusTag(p) {
   if(isPending(p.job)) return '<span class="tag green"><span class="pulse-dot"></span>Анализируем</span>';
   if(p.job?.status === 'failed') return '<span class="tag red">Ошибка анализа</span>';
-  if(p.report?.score == null) return '<span class="tag gray">Мало данных</span>';
+  if(p.report?.score == null) return '<span class="tag gray">Недостаточно данных</span>';
   return `<span class="tag ${p.report.score>=80?'green':'amber'}">${p.report.score>=80?'В порядке':'Есть рекомендации'}</span>`;
 }
 
 function card(p) {
   const [owner,name] = p.ref.split('/'); const report = p.report;
-  return `<article class="repo-card"><div class="repo-card-top"><span class="repo-icon" aria-hidden="true">⌘</span>${statusTag(p)}</div><h3><a href="#/repository/${p.id}"><span>${esc(owner)} /</span>${esc(name)}</a></h3><p class="repo-description">${esc(report?.repository.description || (isPending(p.job)?'Собираем сведения о репозитории. Страница обновится автоматически.':p.job?.error || 'Описание не указано.'))}</p><div class="card-score"><div><div class="score-text ${scoreClass(report?.score)}">${num(report?.score)} <small>/ 100</small></div><div class="score-caption">${report?.coverage<60?'Предварительная оценка':'Оценка здоровья'}</div></div><div><span class="tag">${report?report.coverage+'% данных':'Ожидает анализа'}</span></div></div><div class="card-footer"><span>${esc(report?.repository.language || 'Язык не указан')}${p.demo?' · Демо':''}</span><a class="text-link" href="#/repository/${p.id}">Подробнее ↗</a></div></article>`;
+  return `<article class="repo-card"><div class="repo-card-top"><span class="repo-icon" aria-hidden="true">⌘</span>${statusTag(p)}</div><h3><a href="${viewLink(`repository/${p.id}`)}"><span>${esc(owner)} /</span>${esc(name)}</a></h3><p class="repo-description">${esc(report?.repository.description || (isPending(p.job)?'Собираем сведения о репозитории. Страница обновится автоматически.':p.job?.error || 'Описание не указано.'))}</p><div class="card-score"><div><div class="score-text ${scoreClass(report?.score)}">${num(report?.score)} <small>/ 100</small></div><div class="score-caption">${report?.score==null?'Недостаточно данных':report.coverage<60?'Предварительная оценка':'Оценка здоровья'}</div></div><div><span class="tag">${report?report.coverage+'% данных':'Ожидает анализа'}</span></div></div><div class="card-footer"><span>${esc(report?.repository.language || 'Язык не указан')}${p.demo?' · Демо':''}</span><a class="text-link" href="${viewLink(`repository/${p.id}`)}">Подробнее ↗</a></div></article>`;
 }
 
 function detail(p) {
   const report = p.report; const [owner,name] = p.ref.split('/');
   const pending = isPending(p.job);
-  const header = `<a class="back-link" href="#/repositories">← Все репозитории</a><div class="page-heading repo-heading"><div><span class="eyebrow">${p.demo?'ДЕМОНСТРАЦИОННЫЙ ПРИМЕР':'АНАЛИТИКА РЕПОЗИТОРИЯ'}</span><h1><span>${esc(owner)} /</span> ${esc(name)}</h1><p>${esc(report?.repository.description || 'Результат анализа открытого репозитория SourceCraft.')}</p><div class="repo-submeta">${report?`<span class="tag">${esc(report.repository.language || 'Язык не указан')}</span><span class="tag">${esc(report.repository.default_branch || 'Ветка не указана')}</span><span class="tag">${date(report.analyzed_at)}</span>`:''}${report?.repository.fork?'<span class="tag amber">Форк</span>':''}${!p.demo?`<a class="tag" href="https://sourcecraft.dev/${esc(p.ref)}" target="_blank" rel="noopener noreferrer">Открыть в SourceCraft ↗</a>`:''}</div></div><button class="button button-soft" data-action="reanalyze" data-ref="${esc(p.ref)}" data-demo="${p.demo}" ${pending?'disabled':''}>${pending?'Анализируем…':'↻ Обновить оценку'}</button></div>`;
+  const header = `<a class="back-link" href="${viewLink('repositories')}">← Все репозитории</a><div class="page-heading repo-heading"><div><span class="eyebrow">${p.demo?'ДЕМОНСТРАЦИОННЫЙ ПРИМЕР':'АНАЛИТИКА РЕПОЗИТОРИЯ'}</span><h1><span>${esc(owner)} /</span> ${esc(name)}</h1><p>${esc(report?.repository.description || 'Результат анализа репозитория SourceCraft.')}</p><div class="repo-submeta">${report?`<span class="tag">${esc(report.repository.language || 'Язык не указан')}</span><span class="tag">${esc(report.repository.default_branch || 'Ветка не указана')}</span><span class="tag">${date(report.analyzed_at)}</span>`:''}${report?.repository.fork?'<span class="tag amber">Форк</span>':''}${!p.demo?`<a class="tag" href="https://sourcecraft.dev/${esc(p.ref)}" target="_blank" rel="noopener noreferrer">Открыть в SourceCraft ↗</a>`:''}</div></div><button class="button button-soft" data-action="reanalyze" data-ref="${esc(p.ref)}" data-demo="${p.demo}" ${pending?'disabled':''}>${pending?'Анализируем…':'↻ Обновить оценку'}</button></div>`;
   const progress = pending?`<div class="notice" role="status"><span class="pulse-dot"></span>${p.job.status==='queued'?'Анализ в очереди.':'Собираем данные и рассчитываем оценку.'} Страница обновится автоматически.${report?' Пока показан предыдущий сохранённый результат.':''}</div>`:'';
   const failure = p.job?.status==='failed'?`<div class="notice error" role="alert"><strong>Анализ не завершён.</strong> ${esc(p.job.error)}${report?' Ниже — последний успешный результат.':''}</div>`:'';
   if(!report) return `${header}${progress}${failure}${!pending?'<div class="empty"><h3>Готового отчёта пока нет</h3><p>Устраните причину ошибки и запустите анализ повторно.</p></div>':'<div class="loading" role="status">Проверяем документацию, CI и задачи…</div>'}`;
   const offset = 440-(report.score??0)/100*440;
   return `${header}${progress}${failure}${!report.eligible?`<div class="notice amber">${esc(report.eligibility_reason)} Репозиторий не включён в рейтинг.</div>`:''}
-    <div class="detail-grid"><section class="panel score-panel"><h2 class="panel-title">${report.coverage<60?'Предварительная оценка':'Оценка здоровья'}</h2><div class="score-ring"><svg viewBox="0 0 160 160" aria-hidden="true"><circle class="ring-bg" cx="80" cy="80" r="70"/><circle class="ring-value ${report.score!=null&&report.score<50?'red':report.score!=null&&report.score<80?'amber':''}" cx="80" cy="80" r="70" stroke-dasharray="440" stroke-dashoffset="${offset}"/></svg><div class="ring-text"><strong>${num(report.score)}</strong><small>из 100 баллов</small></div></div><span class="tag ${report.score==null?'gray':report.score>=80?'green':'amber'}">${scoreLabel(report.score)}</span><p class="score-explainer">Оценка по доступным сигналам.<br>Каждый показатель можно раскрыть справа.</p><div class="coverage"><div class="coverage-line"><span>Полнота данных</span><strong>${report.coverage}%</strong></div><meter class="bar" min="0" max="100" value="${report.coverage}" aria-label="Полнота данных ${report.coverage}%"></meter><p>Доля весов с измеренными показателями. Не вероятность правильности оценки.</p></div></section>
+    <div class="detail-grid"><section class="panel score-panel"><h2 class="panel-title">${report.score==null?'Недостаточно данных':report.coverage<60?'Предварительная оценка':'Оценка здоровья'}</h2><div class="score-ring"><svg viewBox="0 0 160 160" aria-hidden="true"><circle class="ring-bg" cx="80" cy="80" r="70"/><circle class="ring-value ${report.score!=null&&report.score<50?'red':report.score!=null&&report.score<80?'amber':''}" cx="80" cy="80" r="70" stroke-dasharray="440" stroke-dashoffset="${offset}"/></svg><div class="ring-text"><strong>${num(report.score)}</strong><small>из 100 баллов</small></div></div><span class="tag ${report.score==null?'gray':report.score>=80?'green':'amber'}">${scoreLabel(report.score)}</span><p class="score-explainer">${report.score==null?'Численный балл появится, когда будет достаточно проверенных данных для новой методики. Причины указаны справа.':'Оценка по проверенным фактам. Каждый показатель можно раскрыть справа.'}</p><div class="coverage"><div class="coverage-line"><span>Полнота данных</span><strong>${report.coverage}%</strong></div><meter class="bar" min="0" max="100" value="${report.coverage}" aria-label="Полнота данных ${report.coverage}%"></meter><p>Доля весов с измеренными показателями. Не вероятность правильности оценки.</p></div></section>
     <section class="panel"><h2 class="panel-title">Из чего складывается оценка</h2>${report.categories.map(category).join('')}</section></div>
-    <section class="panel detail-lower"><div class="section-heading"><h2>Что улучшить в первую очередь <span class="count">${report.recommendations.length}</span></h2><span class="muted small-label">НА ОСНОВЕ ФАКТОВ</span></div>${report.recommendations.length?report.recommendations.map((r,i)=>`<article class="recommendation"><span class="rec-index">${String(i+1).padStart(2,'0')}</span><div><h3>${esc(r.title)}</h3><p>${esc(r.reason)}</p><p class="action">${esc(r.action)}</p></div><span class="tag ${r.priority==='high'?'amber':'gray'}">${r.priority==='high'?'Высокий приоритет':'Средний приоритет'}</span></article>`).join(''):`<div class="notice">${report.score==null?'Недостаточно данных, чтобы дать содержательные рекомендации.':'По измеренным показателям рекомендаций нет. Неизвестные источники, включая AppSec, не позволяют сделать вывод о состоянии всего проекта.'}</div>`}</section>
-    <section class="panel detail-lower"><h2 class="panel-title">Источники и ограничения</h2><div class="sources">${Object.entries(report.sources).map(([key,source])=>`<div class="source"><strong>${esc(({files:'Документы',ci:'История CI',issues:'Issues',pulls:'Merge Requests',appsec:'AppSec'})[key] || key)}</strong><span class="tag ${source.status==='available'?'green':'amber'}">${({available:'Доступно',unavailable:'Недоступно',truncated:'Неполные данные',not_connected:'Не подключено'})[source.status] || 'Неизвестно'}</span><p>${esc(source.detail)}</p></div>`).join('')}</div><p class="score-explainer">Методика ${esc(report.version)}. Наличие файла не означает высокое качество содержимого. Для форков и зрелых проектов интерпретируйте результат с учётом назначения. <a class="text-link" href="#/methodology">Как считается оценка →</a></p></section>`;
+    <section class="panel detail-lower"><div class="section-heading"><h2>Что улучшить в первую очередь <span class="count">${report.recommendations.length}</span></h2><span class="muted small-label">НА ОСНОВЕ ФАКТОВ</span></div>${report.recommendations.length?report.recommendations.map((r,i)=>`<article class="recommendation"><span class="rec-index">${String(i+1).padStart(2,'0')}</span><div><h3>${esc(r.title)}</h3><p>${esc(r.reason)}</p><p class="action">${esc(r.action)}</p></div><span class="tag ${r.priority==='high'?'amber':'gray'}">${r.priority==='high'?'Высокий приоритет':'Средний приоритет'}</span></article>`).join(''):`<div class="notice">${report.score==null?'Пока не хватает проверенных данных для оценки. Откройте показатели и ограничения источников выше.':'По измеренным показателям рекомендаций нет. Неизвестные источники, включая AppSec, не позволяют сделать вывод о состоянии всего проекта.'}</div>`}</section>
+    <section class="panel detail-lower"><h2 class="panel-title">Источники и ограничения</h2><div class="sources">${Object.entries(report.sources).map(([key,source])=>`<div class="source"><strong>${esc(({files:'Документы',revision:'Ревизия основной ветки',ci:'История CI',issues:'Issues',pulls:'Merge Requests',appsec:'AppSec'})[key] || key)}</strong><span class="tag ${source.status==='available'?'green':'amber'}">${({available:'Доступно',unavailable:'Недоступно',truncated:'Неполные данные',not_connected:'Не подключено'})[source.status] || 'Неизвестно'}</span><p>${esc(source.detail)}</p></div>`).join('')}</div><p class="score-explainer">Методика ${esc(report.version)}. Наличие файла не означает высокое качество содержимого. Для форков и зрелых проектов интерпретируйте результат с учётом назначения. <a class="text-link" href="#/methodology">Как считается оценка →</a></p></section>`;
 }
 
 function category(c) {
@@ -188,10 +206,14 @@ function category(c) {
 }
 
 function methodology() {
-  return `<div class="methodology"><div class="page-heading"><div><span class="eyebrow">ПРОЗРАЧНАЯ МЕТОДИКА · MVP-1.0</span><h1>За каждым баллом — факт</h1><p>Простая воспроизводимая оценка. Известные ограничения. Понятные действия.</p></div></div><section class="panel"><h2>Как получается результат</h2><p>Сервис собирает факты из SourceCraft и применяет фиксированные правила. Языковая модель в расчёте не используется. Одинаковые данные и момент анализа дают одинаковый результат.</p><div class="formula">Оценка = сумма (балл показателя × его вес) / сумма весов известных показателей</div><p>Пример: документация — 100 баллов с весом 30, CI — 60 с весом 30; остальные данные неизвестны. Итог: (100 × 30 + 60 × 30) / 60 = <strong>80 баллов</strong>. Полнота данных — <strong>60%</strong>.</p><p>Если измеренных показателей нет или репозиторий пуст, численная оценка не выставляется. Недоступные данные не означают ни успех, ни проблему.</p></section>
-  <section class="panel"><h2>Что измеряет базовая версия</h2><div class="table-wrap"><table><thead><tr><th>Показатель</th><th>Вес</th><th>Правило</th></tr></thead><tbody><tr><td>README</td><td>15%</td><td>100 при наличии, иначе 0.</td></tr><tr><td>LICENSE / COPYING</td><td>10%</td><td>100 при наличии, иначе 0.</td></tr><tr><td>CONTRIBUTING</td><td>5%</td><td>100 при наличии, иначе 0.</td></tr><tr><td>Надёжность CI</td><td>30%</td><td>Доля success среди success, failed и timeout за 30 дней. Отменённые, пропущенные и незавершённые запуски исключены. Нет завершённых запусков — нет оценки.</td></tr><tr><td>Очередь issues</td><td>20%</td><td>100 × (1 − доля незавершённых issues без обновлений более 30 дней). Если незавершённых issues нет, 100.</td></tr><tr><td>Запросы на слияние</td><td>10%</td><td>Та же формула для open и merging с порогом 14 дней. Черновики и закрытые запросы исключены.</td></tr><tr><td>AppSec</td><td>10%</td><td>Не подключён. Всегда неизвестно, в расчёт не входит.</td></tr></tbody></table></div><p>Документы ищутся в корне, docs, .sourcecraft и .github, без анализа качества текста. Источники читаются до конца, максимум 5 страниц по 100 записей каждый. При превышении лимита весь соответствующий источник исключается из оценки.</p></section>
-  <section class="panel"><h2>Полнота данных и рейтинг</h2><p>Полнота данных — сумма весов измеренных показателей. Максимум текущей версии — 90%, поскольку AppSec не подключён. Показатель не является вероятностью корректности оценки.</p><p>В рейтинг входят непустые репозитории с полнотой от 60%, текущей версией методики и анализом не старше 7 дней. При равных баллах сначала сравнивается полнота, затем название. Демо и реальные проекты всегда разделены. Рейтинг охватывает добавленные в этот экземпляр сервиса проекты.</p></section>
-  <section class="panel"><h2>Где заканчиваются выводы сервиса</h2><ul><li>Это базовая инженерная проверка, а не аудит безопасности или качества всего исходного кода.</li><li>Наличие README и лицензии не оценивает их содержание и применимость.</li><li>Малая активность коммитов не штрафуется. Стабильный проект может редко изменяться.</li><li>Обновление issue само по себе не доказывает решение задачи. Метрика чувствительна к формальным изменениям.</li><li>Порогам и весам нужна дальнейшая калибровка на проектах разных типов.</li><li>Рекомендации формируются по наблюдаемым фактам. Обещаний прибавки баллов нет.</li><li>Результат показывает состояние на момент последнего анализа. Автоматический пересчёт по расписанию в MVP не включён.</li></ul><a class="text-link" href="https://sourcecraft.dev/portal/docs/en/sourcecraft/operations/api-start" target="_blank" rel="noopener noreferrer">Официальная документация SourceCraft API ↗</a></section></div>`;
+  return `<div class="methodology"><div class="page-heading"><div><span class="eyebrow">МЕТОДИКА · RHS-2.0-RC1</span><h1>За каждым баллом — проверенный факт</h1><p>Если источника недостаточно, результат остаётся неизвестным.</p></div></div>
+  <section class="panel"><h2>Когда появляется балл</h2><p>Сервис рассчитывает категорию только из проверенных фактов. Отсутствие открытых issues и запросов на слияние не даёт автоматически 100 баллов. При неполной выборке, ошибке доступа и малом числе наблюдений показывается «Недостаточно данных».</p><div class="formula">Полнота = сумма (вес категории × подтверждённая доля) / 100. Итог появляется при полноте не меньше 60% и минимум трёх достаточно измеренных категориях.</div><p>Методика rhs-2.0-rc1 применяется к новым реальным отчётам. Текущий сборщик ещё не получает все необходимые сведения, поэтому у многих репозиториев численного балла пока не будет. Старые отчёты помечены mvp-1.0 и не участвуют в новом рейтинге.</p></section>
+  <section class="panel"><h2>Публичный и личный профили</h2><div class="table-wrap"><table><thead><tr><th>Категория</th><th>Публичный вес</th><th>Личный вес</th><th>Необходимые факты</th></tr></thead><tbody>
+  <tr><td>Документация</td><td>20%</td><td>16%</td><td>Назначение, примеры, требования, запуск, тесты, контакт, участие и лицензия — по содержанию.</td></tr>
+  <tr><td>CI</td><td>25%</td><td>20%</td><td>Первые завершённые попытки значимых pipeline для основной ветки и разных ревизий.</td></tr>
+  <tr><td>Состояние кода</td><td>25%</td><td>20%</td><td>Сложность функций и повторяющиеся фрагменты по проверенному анализатору.</td></tr>
+  <tr><td>Активность</td><td>15%</td><td>12%</td><td>Ритм содержательных изменений и ответы на предложения изменений.</td></tr>
+  <tr><td>Работа с задачами</td><td>15%</td><td>12%</td><td>Своевременные ответы сопровождающих и состояние очереди.</td></tr>
+  <tr><td>Безопасность</td><td>—</td><td>20%</td><td>Актуальные завершённые проверки SourceCraft AppSec. Пока не подключены.</td></tr></tbody></table></div><p>Публичный рейтинг не использует Security и закрытые данные. Личный отчёт не участвует в общем рейтинге.</p></section>
+  <section class="panel"><h2>Текущий статус источников</h2><p>Списки файлов, issues, запросов на слияние и запусков CI уже собираются. Их недостаточно для полной новой методики: название README не доказывает содержание, дата обновления issue не доказывает ответ команды, а запуск CI без привязки к ревизии не образует корректную выборку.</p><p>Откройте показатель в отчёте, чтобы увидеть причину неизвестного состояния. Подробная спецификация находится в документации проекта.</p></section></div>`;
 }
-
-load();

@@ -49,11 +49,7 @@ try {
         if ($composeExit -ne 0) { throw 'Нужен Docker Compose v2: команда docker compose недоступна.' }
         if ($daemonExit -ne 0) { throw 'Docker не запущен или недоступен. Запустите Docker Desktop (Linux containers) и повторите запуск.' }
     }
-    if (-not $env:SOURCECRAFT_TOKEN -and -not $NoTokenPrompt) {
-        Write-Host 'PAT SourceCraft: ввод скрыт. Enter без токена запускает приложение для просмотра демо.'
-        $secureToken = Read-Host 'Токен' -AsSecureString
-        $env:SOURCECRAFT_TOKEN = ([System.Net.NetworkCredential]::new('', $secureToken)).Password.Trim()
-    }
+    Write-Host 'Личный токен подключается на сайте кнопкой «Подключить токен».'
     Write-Host "Repo Health: $Runtime, адрес http://127.0.0.1:$Port" -ForegroundColor Green
     Write-Host 'Первый запуск может потребовать интернет для зависимостей. Остановка: Ctrl+C.'
     if ($Runtime -eq 'Docker') {

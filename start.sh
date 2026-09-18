@@ -32,12 +32,7 @@ case "$runtime" in
     docker info >/dev/null 2>&1 || { echo 'Start Docker (Linux containers), then retry.' >&2; exit 1; } ;;
   *) echo 'Runtime must be auto, go or docker.' >&2; exit 1 ;;
 esac
-if [ -z "${SOURCECRAFT_TOKEN:-}" ] && [ "$prompt_token" -eq 1 ] && [ -t 0 ]; then
-  printf '%s' 'SourceCraft PAT (hidden; Enter for demo): '
-  IFS= read -r -s SOURCECRAFT_TOKEN || SOURCECRAFT_TOKEN=''
-  printf '\n'
-  export SOURCECRAFT_TOKEN
-fi
+printf '%s\n' 'Connect your personal SourceCraft token on the website.'
 printf 'Repo Health: %s, http://127.0.0.1:%s (Ctrl+C to stop)\n' "$runtime" "$port"
 if [ "$runtime" = docker ]; then
   export REPO_HEALTH_PORT="$port"

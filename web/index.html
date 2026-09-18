@@ -9,6 +9,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='12' fill='%23123e32'/%3E%3Cpath d='M7 21h7l4-9 5 17 4-8h6' fill='none' stroke='%23b4efba' stroke-width='3'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/styles.css">
   <script src="/app.js" defer></script>
+  <script src="/access.js" defer></script>
 </head>
 <body>
   <a class="skip" href="#main">Перейти к содержимому</a>
@@ -21,6 +22,14 @@
       <a href="#/methodology" data-nav="methodology"><span class="nav-icon" aria-hidden="true">≡</span> Как считается оценка</a>
     </nav>
     <div class="sidebar-bottom">
+      <section class="access-panel" aria-label="Доступ к SourceCraft">
+        <span class="small-label">ДОСТУП К SOURCECRAFT</span>
+        <p id="access-status" role="status">Токен не подключён</p>
+        <button id="connect-token" class="button button-soft">Подключить токен</button>
+        <button id="disconnect-token" class="button button-soft" hidden>Отключить и удалить данные</button>
+        <label for="access-scope">Репозитории</label>
+        <select id="access-scope"><option value="public">Публичный каталог</option><option value="personal" disabled>Мои анализы</option></select>
+      </section>
       <div class="demo-panel"><span class="small-label">ПОЗНАКОМИТЬСЯ С СЕРВИСОМ</span><p>Три примера. Разное состояние. Понятные причины.</p><button id="demo-toggle" class="button button-soft">Посмотреть демо <span aria-hidden="true">↗</span></button></div>
       <div class="sidebar-foot"><span class="status-dot"></span> Локальное приложение <span class="version">MVP</span></div>
     </div>
@@ -28,20 +37,35 @@
   <div class="shell">
     <header class="topbar"><div class="breadcrumbs">SourceCraft <span>/</span> <strong id="breadcrumb">Репозитории</strong></div><button class="button button-primary" data-action="open-analysis"><span aria-hidden="true">＋</span> Анализировать репозиторий</button></header>
     <div id="mode-banner" class="mode-banner" hidden>Демонстрационный режим: все репозитории и показатели вымышлены.<button id="exit-demo">Вернуться к реальным данным →</button></div>
+    <div id="personal-banner" class="notice amber" hidden>Личная сессия: результаты доступны только в этом браузере в течение часа. В общий рейтинг не попадают. AppSec пока не подключён.</div>
     <main id="main" tabindex="-1"><div class="loading" role="status">Загружаем рабочее пространство…</div></main>
-    <footer class="page-footer"><span>Repo Health · SourceCraft</span><span>Каждая оценка — с объяснением. <a href="#/methodology">Методика mvp-1.0 ↗</a></span></footer>
+    <footer class="page-footer"><span>Repo Health · SourceCraft</span><span>Каждая оценка — с объяснением. <a href="#/methodology">Методика rhs-2.0-rc1 ↗</a></span></footer>
   </div>
   <dialog id="analysis-dialog" aria-labelledby="analysis-title">
     <form id="analysis-form">
       <div class="dialog-top"><span class="eyebrow">НОВЫЙ АНАЛИЗ</span><button type="button" class="icon-button" id="close-dialog" aria-label="Закрыть">×</button></div>
       <h2 id="analysis-title">Посмотрим, как дела<br>у вашего репозитория</h2>
-      <p class="muted">Укажите открытый репозиторий SourceCraft. Соберём доступные данные и объясним результат.</p>
+      <p class="muted">Укажите репозиторий SourceCraft. Для личного анализа подключите токен: можно использовать открытые и приватные репозитории, доступные ему.</p>
+      <p id="analysis-scope" class="input-hint"></p>
       <label for="repository-ref">Адрес или название репозитория</label>
       <input id="repository-ref" name="ref" placeholder="организация/репозиторий" required maxlength="560" autocomplete="off" spellcheck="false">
       <p class="input-hint">Например: examples/self-hosted-worker или полный HTTPS-адрес.</p>
       <div id="form-error" class="inline-error" role="alert" hidden></div>
       <p class="privacy-note">Исходный код не запускается. Недоступные источники будут отмечены в отчёте.</p>
       <button id="submit-analysis" class="button button-primary button-full" type="submit">Запустить анализ <span aria-hidden="true">→</span></button>
+    </form>
+  </dialog>
+  <dialog id="token-dialog" aria-labelledby="token-title">
+    <form id="token-form">
+      <div class="dialog-top"><span class="eyebrow">ЛИЧНЫЙ ДОСТУП</span><button type="button" class="icon-button" id="close-token" aria-label="Закрыть">×</button></div>
+      <h2 id="token-title">Подключить SourceCraft</h2>
+      <p class="muted">Используйте персональный токен с правами чтения нужных репозиториев. Он даёт доступ в пределах ваших прав, включая проекты, куда вас пригласили.</p>
+      <label for="sourcecraft-token">Персональный токен (PAT)</label>
+      <input id="sourcecraft-token" type="password" required maxlength="2048" autocomplete="off" autocapitalize="none" spellcheck="false">
+      <p class="input-hint"><a href="https://sourcecraft.dev/portal/docs/ru/sourcecraft/security/pat" target="_blank" rel="noopener noreferrer">Как создать токен в SourceCraft ↗</a></p>
+      <p class="privacy-note">Токен и личные отчёты хранятся в памяти сервера до отключения, перезапуска или истечения часа. В браузере хранится только идентификатор сессии. AppSec ещё не подключён: токен сам по себе не добавляет проверку безопасности или подписку.</p>
+      <div id="token-error" class="inline-error" role="alert" hidden></div>
+      <button id="save-token" class="button button-primary button-full" type="submit">Проверить и подключить</button>
     </form>
   </dialog>
   <div id="toast" class="toast" role="status" hidden></div>

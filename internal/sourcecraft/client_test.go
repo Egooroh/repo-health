@@ -22,6 +22,8 @@ func TestOfficialContractPaginationAndPartialAccess(t *testing.T) {
 		switch r.URL.Path {
 		case "/repos/org/repo":
 			fmt.Fprint(w, `{"id":"123","slug":"repo","visibility":"public","description":"Test","default_branch":"main","language":{"name":"Go"}}`)
+		case "/repos/org/repo/branches":
+			fmt.Fprint(w, `{"branches":[{"name":"main","commit":{"hash":"0123456789abcdef0123456789abcdef01234567"}}]}`)
 		case "/repos/org/repo/trees":
 			if r.URL.Query().Get("path") == "docs" {
 				fmt.Fprint(w, `{"trees":[{"name":"CONTRIBUTING.md","path":"docs/CONTRIBUTING.md","type":"file"}]}`)
@@ -50,6 +52,9 @@ func TestOfficialContractPaginationAndPartialAccess(t *testing.T) {
 	s, err := c.Collect(context.Background(), "org/repo", time.Date(2026, 9, 12, 0, 0, 0, 0, time.UTC))
 	if err != nil {
 		t.Fatal(err)
+	}
+	if s.Repository.Revision != "0123456789abcdef0123456789abcdef01234567" || !s.Sources["revision"].Available() {
+		t.Fatal("main revision was not pinned")
 	}
 	if len(s.Files) != 3 || !s.Sources["files"].Available() || s.Sources["ci"].Available() {
 		t.Fatalf("unexpected source data: %+v", s)

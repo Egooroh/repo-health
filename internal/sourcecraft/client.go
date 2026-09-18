@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -18,10 +19,13 @@ import (
 
 const BaseURL = "https://api.sourcecraft.tech"
 
+var commitHash = regexp.MustCompile(`^[0-9a-f]{40}([0-9a-f]{24})?$`)
+
 type Client struct {
 	baseURL, token string
 	http           *http.Client
 	maxPages       int
+	personal       bool
 }
 
 func New(token string) *Client {
@@ -33,7 +37,41 @@ func NewWithHTTP(baseURL, token string, client *http.Client, maxPages int) *Clie
 	if maxPages < 1 {
 		maxPages = 1
 	}
-	return &Client{strings.TrimRight(baseURL, "/"), token, client, maxPages}
+	return &Client{baseURL: strings.TrimRight(baseURL, "/"), token: token, http: client, maxPages: maxPages}
+}
+
+// NewPersonal permits private repositories only in an isolated personal service.
+func NewPersonal(token string) *Client {
+	c := New(token)
+	c.personal = true
+	return c
+}
+
+// ValidateToken verifies a read-only API call, not AppSec access or repository rights.
+func (c *Client) ValidateToken(ctx context.Context) error {
+	var result map[string]json.RawMessage
+	return c.get(ctx, "/repos", url.Values{"page_size": {"1"}}, &result)
+}
+
+// CheckAccess is deliberately uncached: a stored personal report must not outlive
+// the caller's permission to read its repository.
+func (c *Client) CheckAccess(ctx context.Context, ref string) error {
+	canonical, err := domain.ParseRef(ref)
+	if err != nil {
+		return err
+	}
+	var meta struct {
+		ID         string `json:"id"`
+		Slug       string `json:"slug"`
+		Visibility string `json:"visibility"`
+	}
+	if err := c.get(ctx, "/repos/"+canonical, nil, &meta); err != nil {
+		return err
+	}
+	if meta.ID == "" || meta.Slug == "" || (meta.Visibility != "public" && (!c.personal || (meta.Visibility != "private" && meta.Visibility != "internal"))) {
+		return domain.ErrAccessDenied
+	}
+	return nil
 }
 
 type apiError struct{ status int }
@@ -41,7 +79,7 @@ type apiError struct{ status int }
 func (e apiError) Error() string {
 	switch e.status {
 	case 401, 403:
-		return "SourceCraft отклонил доступ. Проверьте серверный SOURCECRAFT_TOKEN и его права."
+		return "SourceCraft отклонил доступ. Подключите действующий токен на сайте и проверьте его права."
 	case 404:
 		return "Репозиторий или источник данных не найден либо недоступен."
 	case 429:
@@ -164,16 +202,17 @@ func (c *Client) Collect(ctx context.Context, ref string, now time.Time) (domain
 		}
 		return domain.Snapshot{}, err
 	}
-	if meta.Visibility != "public" {
+	if meta.Visibility != "public" && (!c.personal || (meta.Visibility != "private" && meta.Visibility != "internal")) {
 		return domain.Snapshot{}, domain.ErrNotPublic
 	}
 	if meta.ID == "" || meta.Slug == "" {
 		return domain.Snapshot{}, errors.New("SourceCraft вернул неполное описание репозитория")
 	}
 	s := domain.Snapshot{Repository: domain.Repository{Ref: canonical, URL: "https://sourcecraft.dev/" + canonical,
-		Description: meta.Description, Language: meta.Language.Name, DefaultBranch: meta.DefaultBranch, Empty: meta.Empty, Fork: meta.Parent != nil},
+		Description: meta.Description, Language: meta.Language.Name, DefaultBranch: meta.DefaultBranch, Empty: meta.Empty, Fork: meta.Parent != nil, Visibility: meta.Visibility},
 		CollectedAt: now, Sources: map[string]domain.SourceState{"appsec": {Status: "not_connected", Detail: "AppSec не подключён в этой версии."}},
 		Files: []string{}, Issues: []domain.WorkItem{}, Pulls: []domain.WorkItem{}, Runs: []domain.CIRun{}}
+	s.Repository.Revision, s.Sources["revision"] = c.revision(ctx, path, meta.DefaultBranch)
 	if meta.Empty {
 		s.Sources["files"] = domain.SourceState{Status: "available", Detail: "Репозиторий пуст."}
 	} else {
@@ -189,7 +228,7 @@ func (c *Client) Collect(ctx context.Context, ref string, now time.Time) (domain
 			key = "runs"
 		}
 		query := url.Values{}
-		if source == "issues" {
+		if source == "issues" && !c.personal {
 			query.Set("filter", "visibility=public")
 		}
 		items, state := c.list(ctx, path+suffix, key, query)
@@ -209,7 +248,7 @@ func (c *Client) Collect(ctx context.Context, ref string, now time.Time) (domain
 					Visibility string    `json:"visibility"`
 				}
 				decodeErr = json.Unmarshal(raw, &item)
-				if decodeErr == nil && item.Visibility != "" && item.Visibility != "public" {
+				if !c.personal && decodeErr == nil && item.Visibility != "" && item.Visibility != "public" {
 					continue
 				}
 				s.Issues = append(s.Issues, domain.WorkItem{Status: item.Status.Type, UpdatedAt: item.UpdatedAt})
@@ -281,4 +320,34 @@ func (c *Client) files(ctx context.Context, path string) ([]string, domain.Sourc
 		}
 	}
 	return files, domain.SourceState{Status: "available", Detail: "Проверены корень и присутствующие каталоги docs, .sourcecraft, .github."}
+}
+
+// revision pins the default branch to a verified commit hash. No score is
+// derived from branch metadata alone; other adapters can use the hash later.
+func (c *Client) revision(ctx context.Context, path, branch string) (string, domain.SourceState) {
+	if branch == "" {
+		return "", domain.SourceState{Status: "unavailable", Detail: "Основная ветка не указана."}
+	}
+	items, state := c.list(ctx, path+"/branches", "branches", url.Values{"filter": {branch}})
+	if !state.Available() {
+		return "", state
+	}
+	for _, raw := range items {
+		var b struct {
+			Name   string `json:"name"`
+			Commit struct {
+				Hash string `json:"hash"`
+			} `json:"commit"`
+		}
+		if json.Unmarshal(raw, &b) != nil {
+			return "", domain.SourceState{Status: "unavailable", Detail: "Некорректное описание основной ветки."}
+		}
+		if b.Name == branch {
+			if !commitHash.MatchString(b.Commit.Hash) {
+				return "", domain.SourceState{Status: "unavailable", Detail: "Нет корректного хеша коммита основной ветки."}
+			}
+			return b.Commit.Hash, domain.SourceState{Status: "available", Detail: "Ревизия основной ветки подтверждена."}
+		}
+	}
+	return "", domain.SourceState{Status: "unavailable", Detail: "Основная ветка не найдена в ответе SourceCraft."}
 }

@@ -63,8 +63,10 @@ type Repository struct {
 	URL           string `json:"url"`
 	Language      string `json:"language"`
 	DefaultBranch string `json:"default_branch"`
+	Revision      string `json:"revision,omitempty"`
 	Empty         bool   `json:"empty"`
 	Fork          bool   `json:"fork"`
+	Visibility    string `json:"visibility,omitempty"`
 }
 
 type WorkItem struct {
@@ -118,6 +120,7 @@ type Report struct {
 	Repository        Repository             `json:"repository"`
 	Demo              bool                   `json:"demo"`
 	Version           string                 `json:"version"`
+	Status            string                 `json:"status,omitempty"`
 	AnalyzedAt        time.Time              `json:"analyzed_at"`
 	Score             *float64               `json:"score"`
 	Coverage          int                    `json:"coverage"`

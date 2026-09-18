@@ -37,7 +37,9 @@ func run() error {
 	defer stop()
 	workerDone := make(chan error, 1)
 	go func() { workerDone <- service.Run(ctx) }()
-	server := &http.Server{Addr: env("HTTP_ADDR", "127.0.0.1:8080"), Handler: httpapi.New(service, log, token != ""),
+	handler, closeSessions := httpapi.NewWithSessions(ctx, service, log, token != "")
+	defer closeSessions()
+	server := &http.Server{Addr: env("HTTP_ADDR", "127.0.0.1:8080"), Handler: handler,
 		ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 30 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16 * 1024}
 	serverDone := make(chan error, 1)
 	go func() { serverDone <- server.ListenAndServe() }()

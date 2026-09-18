@@ -32,7 +32,7 @@ func New(service *app.Service, log *slog.Logger, tokenConfigured bool) http.Hand
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) { writeJSON(w, 200, map[string]string{"status": "ok"}) })
 	mux.HandleFunc("GET /api/v1/meta", func(w http.ResponseWriter, r *http.Request) {
-		writeJSON(w, 200, map[string]any{"version": scoring.Version, "token_configured": s.tokenConfigured, "appsec_connected": false})
+		writeJSON(w, 200, map[string]any{"version": scoring.CurrentVersion, "token_configured": s.tokenConfigured, "appsec_connected": false})
 	})
 	mux.HandleFunc("GET /api/v1/repositories", s.list(false))
 	mux.HandleFunc("GET /api/v1/leaderboard", s.list(true))
@@ -61,7 +61,7 @@ func New(service *app.Service, log *slog.Logger, tokenConfigured bool) http.Hand
 			writeError(w, 405, "Метод не поддерживается.")
 			return
 		}
-		if r.URL.Path != "/" && r.URL.Path != "/app.js" && r.URL.Path != "/styles.css" {
+		if r.URL.Path != "/" && r.URL.Path != "/app.js" && r.URL.Path != "/access.js" && r.URL.Path != "/styles.css" {
 			http.NotFound(w, r)
 			return
 		}
