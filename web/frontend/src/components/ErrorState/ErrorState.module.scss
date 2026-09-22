@@ -1,0 +1,19 @@
+.error {
+  padding: 35px;
+  background: var(--surface);
+  border: 1px solid color-mix(in oklch, var(--red) 35%, transparent);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.error h2 {
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0 0 10px;
+}
+
+.error p {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0 0 18px;
+}

@@ -1,0 +1,52 @@
+@use '../../theme' as theme;
+
+.heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 18px;
+  margin-bottom: 26px;
+
+  @media (max-width: theme.$bp-md) {
+    align-items: flex-start;
+  }
+
+  @media (max-width: theme.$bp-sm) {
+    display: block;
+    margin-bottom: 21px;
+  }
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 1.9px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.description {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+
+  @media (max-width: theme.$bp-sm) {
+    font-size: 12px;
+  }
+}
+
+.action {
+  @media (max-width: theme.$bp-sm) {
+    margin-top: 12px;
+  }
+}
+
+.heading h1 {
+  @media (max-width: theme.$bp-lg) {
+    font-size: 29px;
+  }
+
+  @media (max-width: theme.$bp-sm) {
+    font-size: 28px;
+  }
+}

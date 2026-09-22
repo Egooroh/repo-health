@@ -1,0 +1,16 @@
+@use '../../theme' as theme;
+
+.search {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  min-height: 37px;
+  padding: 8px 12px;
+  background: var(--surface);
+  width: 240px;
+  font-size: 11px;
+  color: var(--ink);
+
+  @media (max-width: theme.$bp-sm) {
+    width: 100%;
+  }
+}

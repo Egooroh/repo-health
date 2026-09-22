@@ -1,0 +1,24 @@
+.bar {
+  display: block;
+  width: 100%;
+  height: 6px;
+  border: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--border);
+  appearance: none;
+
+  &::-webkit-meter-bar {
+    background: var(--border);
+    border: 0;
+    height: 6px;
+  }
+
+  &::-webkit-meter-optimum-value {
+    background: var(--green);
+  }
+
+  &::-moz-meter-bar {
+    background: var(--green);
+  }
+}

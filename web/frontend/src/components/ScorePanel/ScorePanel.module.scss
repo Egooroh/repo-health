@@ -1,0 +1,35 @@
+@use '../../theme' as theme;
+
+.panel {
+  text-align: center;
+
+  @media (max-width: theme.$bp-sm) {
+    padding-bottom: 20px;
+  }
+}
+
+.explainer {
+  color: var(--muted);
+  font-size: 11px;
+  margin: 15px 0;
+}
+
+.coverage {
+  border-top: 1px solid var(--line);
+  margin-top: 22px;
+  padding-top: 17px;
+  text-align: left;
+
+  p {
+    font-size: 10px;
+    color: var(--muted);
+    margin: 8px 0;
+  }
+}
+
+.coverageLine {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  margin-bottom: 9px;
+}

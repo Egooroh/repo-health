@@ -1,0 +1,73 @@
+@use '../theme' as theme;
+
+.wrapper {
+  max-width: 920px;
+}
+
+.panel {
+  margin-bottom: 20px;
+}
+
+.heading {
+  font-size: 19px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.text {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.formula {
+  background: color-mix(in oklch, var(--green) 12%, var(--surface));
+  padding: 20px;
+  border-radius: 9px;
+  color: var(--green);
+  font-size: 14px;
+  margin: 18px 0;
+  line-height: 1.8;
+
+  @media (max-width: theme.$bp-sm) {
+    font-size: 12px;
+    padding: 15px;
+  }
+}
+
+.tableWrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: auto;
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  text-align: left;
+  white-space: normal;
+}
+
+.table th {
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--surface-hover);
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.table td {
+  padding: 13px 15px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+
+.table tbody tr:last-child td {
+  border: 0;
+}
+
+.table tbody tr:hover {
+  background: var(--surface-hover);
+}

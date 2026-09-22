@@ -1,0 +1,20 @@
+.empty {
+  padding: 44px 28px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.empty h3 {
+  color: var(--ink);
+  font-size: 18px;
+  font-weight: 500;
+  margin: 4px 0 10px;
+}
+
+.action {
+  margin-top: 12px;
+}

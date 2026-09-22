@@ -25,7 +25,9 @@ if [ "$runtime" = auto ]; then
   else echo 'Install Go (go.dev/dl) or Docker with Compose, then retry.' >&2; exit 1; fi
 fi
 case "$runtime" in
-  go) command -v go >/dev/null 2>&1 || { echo 'Go is not installed.' >&2; exit 1; } ;;
+  go)
+    command -v go >/dev/null 2>&1 || { echo 'Go is not installed.' >&2; exit 1; }
+    command -v npm >/dev/null 2>&1 || { echo 'npm is required to build the web UI (web/dist is embedded into the binary). Install Node.js or use --runtime docker.' >&2; exit 1; } ;;
   docker)
     command -v docker >/dev/null 2>&1 || { echo 'Docker is not installed.' >&2; exit 1; }
     docker compose version >/dev/null 2>&1 || { echo 'Docker Compose v2 is required.' >&2; exit 1; }
@@ -42,6 +44,10 @@ export GOCACHE="${GOCACHE:-$repo_root/.cache/go-build}"
 export GOMODCACHE="${GOMODCACHE:-$repo_root/.cache/go-mod}"
 export GOTMPDIR="${GOTMPDIR:-$repo_root/.cache/tmp}"
 mkdir -p -- "$GOCACHE" "$GOMODCACHE" "$GOTMPDIR"
+if [ ! -d "$repo_root/web/frontend/node_modules" ]; then
+  npm --prefix "$repo_root/web/frontend" install
+fi
+npm --prefix "$repo_root/web/frontend" run build
 export HTTP_ADDR="127.0.0.1:$port"
 export DATABASE_PATH="${DATABASE_PATH:-$repo_root/data/repo-health.db}"
 build_dir="$(mktemp -d "$GOTMPDIR/repo-health-launch.XXXXXX")"

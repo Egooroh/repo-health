@@ -80,3 +80,55 @@ func TestDurableQueueReportAndInvalidation(t *testing.T) {
 		t.Fatal("private result remains visible")
 	}
 }
+
+func TestEnqueueStale(t *testing.T) {
+	ctx := context.Background()
+	s, err := Open(filepath.Join(t.TempDir(), "health.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer s.Close()
+	now := time.Now().UTC()
+	old := now.Add(-25 * time.Hour)
+	fresh := now.Add(-time.Hour)
+
+	mustComplete := func(ref string, demo bool, createdAt time.Time) domain.Job {
+		t.Helper()
+		j, err := s.Enqueue(ctx, ref, demo, createdAt)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err = s.Complete(ctx, j, domain.Snapshot{}, domain.Report{}); err != nil {
+			t.Fatal(err)
+		}
+		return j
+	}
+
+	staleJob := mustComplete("org/stale", false, old)
+	freshJob := mustComplete("org/fresh", false, fresh)
+	demoJob := mustComplete("demo/atlas", true, old)
+	activeJob, err := s.Enqueue(ctx, "org/active", false, old)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	n, err := s.EnqueueStale(ctx, now, 24*time.Hour, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 1 {
+		t.Fatalf("expected exactly one repository requeued, got %d", n)
+	}
+	if p, err := s.GetProject(ctx, staleJob.RepositoryID); err != nil || p.Job.Status != "queued" || p.Job.ID == staleJob.ID {
+		t.Fatal("stale repository was not requeued", err)
+	}
+	if p, err := s.GetProject(ctx, freshJob.RepositoryID); err != nil || p.Job.ID != freshJob.ID {
+		t.Fatal("recently analyzed repository should not be requeued", err)
+	}
+	if p, err := s.GetProject(ctx, demoJob.RepositoryID); err != nil || p.Job.ID != demoJob.ID {
+		t.Fatal("demo repository should not be auto-refreshed", err)
+	}
+	if p, err := s.GetProject(ctx, activeJob.RepositoryID); err != nil || p.Job.ID != activeJob.ID {
+		t.Fatal("repository with an active job should not be double-queued", err)
+	}
+}

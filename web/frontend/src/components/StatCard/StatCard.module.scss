@@ -1,0 +1,53 @@
+@use '../../theme' as theme;
+
+.stat {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px 22px;
+
+  @media (max-width: theme.$bp-sm) {
+    padding: 14px 11px;
+  }
+}
+
+.label {
+  color: var(--muted);
+  font-size: 11px;
+  display: flex;
+  justify-content: space-between;
+
+  @media (max-width: theme.$bp-sm) {
+    font-size: 9px;
+    min-height: 28px;
+  }
+}
+
+.value {
+  font-size: 31px;
+  font-weight: 550;
+  letter-spacing: -1px;
+  margin-top: 6px;
+  line-height: 1.4;
+
+  small {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+
+  @media (max-width: theme.$bp-sm) {
+    font-size: 27px;
+  }
+}
+
+.note {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+
+  @media (max-width: theme.$bp-sm) {
+    font-size: 8px;
+  }
+}

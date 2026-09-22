@@ -1,8 +1,16 @@
+FROM node:22-bookworm-slim AS frontend
+WORKDIR /src/web/frontend
+COPY web/frontend/package.json web/frontend/package-lock.json ./
+RUN npm ci
+COPY web/frontend/ ./
+RUN npm run build
+
 FROM golang:1.26-bookworm AS build
 WORKDIR /src
 COPY go.mod go.sum ./
 RUN go mod download
 COPY . .
+COPY --from=frontend /src/web/dist ./web/dist
 RUN CGO_ENABLED=0 go build -trimpath -o /out/repo-health ./cmd/repo-health
 
 FROM debian:bookworm-slim

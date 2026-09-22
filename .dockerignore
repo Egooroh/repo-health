@@ -4,3 +4,5 @@ bin
 data
 .env
 *.exe
+web/frontend/node_modules
+web/dist

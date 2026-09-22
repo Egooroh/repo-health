@@ -145,6 +145,66 @@ func (s *Store) Enqueue(ctx context.Context, ref string, demo bool, now time.Tim
 	return j, nil
 }
 
+// EnqueueStale queues fresh jobs for non-demo repositories whose latest
+// analysis finished more than olderThan ago, so the catalog refreshes itself
+// without a manual "reanalyze" click. It respects the same global queue cap
+// as Enqueue and never touches a repository that already has an active job
+// (the one_active_job index would reject it anyway).
+func (s *Store) EnqueueStale(ctx context.Context, now time.Time, olderThan time.Duration, batchLimit int) (int, error) {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return 0, err
+	}
+	defer tx.Rollback()
+	var active int
+	if err = tx.QueryRowContext(ctx, "SELECT COUNT(*) FROM jobs WHERE status IN ('queued','running')").Scan(&active); err != nil {
+		return 0, err
+	}
+	room := 100 - active
+	if room > batchLimit {
+		room = batchLimit
+	}
+	if room <= 0 {
+		return 0, tx.Commit()
+	}
+	cutoff := now.Add(-olderThan).Format(time.RFC3339Nano)
+	rows, err := tx.QueryContext(ctx, `SELECT r.id FROM repositories r
+		JOIN jobs j ON j.id=(SELECT id FROM jobs WHERE repository_id=r.id ORDER BY created_at DESC,rowid DESC LIMIT 1)
+		WHERE r.demo=0 AND j.status IN ('completed','failed') AND j.created_at<?
+		ORDER BY j.created_at ASC LIMIT ?`, cutoff, room)
+	if err != nil {
+		return 0, err
+	}
+	var repoIDs []string
+	for rows.Next() {
+		var id string
+		if err = rows.Scan(&id); err != nil {
+			rows.Close()
+			return 0, err
+		}
+		repoIDs = append(repoIDs, id)
+	}
+	if err = rows.Err(); err != nil {
+		rows.Close()
+		return 0, err
+	}
+	rows.Close()
+	for _, repoID := range repoIDs {
+		bytes := make([]byte, 16)
+		if _, err = rand.Read(bytes); err != nil {
+			return 0, err
+		}
+		jobID := hex.EncodeToString(bytes)
+		if _, err = tx.ExecContext(ctx, "INSERT INTO jobs(id,repository_id,status,created_at) VALUES(?,?,?,?)", jobID, repoID, "queued", now.Format(time.RFC3339Nano)); err != nil {
+			return 0, err
+		}
+	}
+	if err = tx.Commit(); err != nil {
+		return 0, err
+	}
+	return len(repoIDs), nil
+}
+
 func (s *Store) Claim(ctx context.Context, now time.Time) (domain.Job, error) {
 	var id string
 	err := s.db.QueryRowContext(ctx, `UPDATE jobs SET status='running',started_at=?

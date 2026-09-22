@@ -1,5 +1,3 @@
-// Package domain contains the data contract shared by collection, scoring and storage.
-// It has no knowledge of HTTP, SourceCraft response formats or SQL.
 package domain
 
 import (
@@ -22,7 +20,6 @@ var (
 
 var slugPattern = regexp.MustCompile(`^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,255}$`)
 
-// ParseRef accepts only SourceCraft repository roots, never arbitrary request URLs.
 func ParseRef(input string) (string, error) {
 	s := strings.TrimSpace(input)
 	if strings.Contains(s, "://") {
@@ -51,7 +48,7 @@ func RepositoryID(ref string, demo bool) string {
 }
 
 type SourceState struct {
-	Status string `json:"status"` // available, unavailable, truncated, not_connected
+	Status string `json:"status"`
 	Detail string `json:"detail"`
 }
 
@@ -79,7 +76,6 @@ type CIRun struct {
 	FinishedAt time.Time `json:"finished_at"`
 }
 
-// Snapshot is sufficient to reproduce a score, without storing comments or secrets.
 type Snapshot struct {
 	Repository  Repository             `json:"repository"`
 	CollectedAt time.Time              `json:"collected_at"`
@@ -96,7 +92,7 @@ type Metric struct {
 	Title    string   `json:"title"`
 	Weight   int      `json:"weight"`
 	Score    *float64 `json:"score"`
-	State    string   `json:"state"` // pass, warning, fail, unknown
+	State    string   `json:"state"`
 	Evidence string   `json:"evidence"`
 }
 

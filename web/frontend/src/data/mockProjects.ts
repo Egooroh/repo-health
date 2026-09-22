@@ -1,0 +1,148 @@
+import type { Project } from '../types'
+
+export const mockProjects: Project[] = [
+  {
+    id: 'sourcecraft-examples-self-hosted-worker',
+    ref: 'examples/self-hosted-worker',
+    demo: true,
+    job: {
+      id: 'job-self-hosted-worker',
+      repository_id: 'sourcecraft-examples-self-hosted-worker',
+      ref: 'examples/self-hosted-worker',
+      demo: true,
+      status: 'completed',
+      created_at: '2026-09-18T09:10:00Z',
+      finished_at: '2026-09-18T09:12:00Z',
+    },
+    report: {
+      demo: true,
+      score: 86,
+      coverage: 82,
+      eligible: true,
+      eligibility_reason: '',
+      version: 'rhs-2.0-rc1',
+      analyzed_at: '2026-09-18T09:12:00Z',
+      repository: {
+        ref: 'examples/self-hosted-worker',
+        description: 'Воркер для фоновых задач с очередью и повторными попытками.',
+        url: 'https://sourcecraft.dev/examples/self-hosted-worker',
+        language: 'Go',
+        default_branch: 'main',
+        empty: false,
+        fork: false,
+      },
+      categories: [
+        {
+          id: 'docs',
+          title: 'Документация',
+          weight: 20,
+          score: 90,
+          metrics: [
+            { id: 'docs-purpose', title: 'Назначение и запуск', score: 95, weight: 40, state: 'ok', evidence: 'README описывает назначение, установку и запуск.' },
+            { id: 'docs-contrib', title: 'Участие и лицензия', score: 85, weight: 60, state: 'ok', evidence: 'Есть CONTRIBUTING.md и файл лицензии.' },
+          ],
+        },
+        {
+          id: 'ci',
+          title: 'CI',
+          weight: 25,
+          score: 78,
+          metrics: [
+            { id: 'ci-runs', title: 'Успешные запуски', score: 78, weight: 100, state: 'ok', evidence: '9 из 10 последних запусков основной ветки завершены успешно.' },
+          ],
+        },
+      ],
+      recommendations: [
+        {
+          metric_id: 'docs-purpose',
+          title: 'Добавить пример конфигурации',
+          reason: 'Новым участникам приходится читать код, чтобы понять формат конфигурации.',
+          action: 'Добавьте config.example.yaml с комментариями.',
+          priority: 'medium',
+        },
+      ],
+      sources: {
+        files: { status: 'available', detail: 'Прочитано 42 файла верхнего уровня.' },
+        revision: { status: 'available', detail: 'Основная ветка main, последняя ревизия получена.' },
+        ci: { status: 'available', detail: '10 последних запусков основной ветки.' },
+        issues: { status: 'available', detail: '12 открытых issues.' },
+        pulls: { status: 'truncated', detail: 'Получено 100 из более чем 240 запросов на слияние.' },
+        appsec: { status: 'not_connected', detail: 'AppSec ещё не подключён.' },
+      },
+    },
+  },
+  {
+    id: 'sourcecraft-examples-docs-site',
+    ref: 'examples/docs-site',
+    demo: true,
+    job: {
+      id: 'job-docs-site',
+      repository_id: 'sourcecraft-examples-docs-site',
+      ref: 'examples/docs-site',
+      demo: true,
+      status: 'completed',
+      created_at: '2026-09-17T14:38:00Z',
+      finished_at: '2026-09-17T14:40:00Z',
+    },
+    report: {
+      demo: true,
+      score: 58,
+      coverage: 64,
+      eligible: true,
+      eligibility_reason: '',
+      version: 'rhs-2.0-rc1',
+      analyzed_at: '2026-09-17T14:40:00Z',
+      repository: {
+        ref: 'examples/docs-site',
+        description: 'Статический генератор документации.',
+        url: 'https://sourcecraft.dev/examples/docs-site',
+        language: 'TypeScript',
+        default_branch: 'main',
+        empty: false,
+        fork: false,
+      },
+      categories: [
+        {
+          id: 'work-items',
+          title: 'Работа с задачами',
+          weight: 15,
+          score: 51,
+          metrics: [
+            { id: 'issue-response', title: 'Ответы сопровождающих', score: 51, weight: 100, state: 'ok', evidence: 'Среднее время ответа — 9 дней по 30 последним issues.' },
+          ],
+        },
+      ],
+      recommendations: [
+        {
+          metric_id: 'issue-response',
+          title: 'Ускорить ответы на issues',
+          reason: 'Среднее время первого ответа превышает неделю.',
+          action: 'Назначьте дежурного по issues на неделю.',
+          priority: 'high',
+        },
+      ],
+      sources: {
+        files: { status: 'available', detail: 'Прочитано 18 файлов верхнего уровня.' },
+        revision: { status: 'available', detail: 'Основная ветка main.' },
+        ci: { status: 'unavailable', detail: 'Pipeline для основной ветки не найден.' },
+        issues: { status: 'available', detail: '30 последних issues получены.' },
+        pulls: { status: 'available', detail: '30 последних запросов на слияние получены.' },
+        appsec: { status: 'not_connected', detail: 'AppSec ещё не подключён.' },
+      },
+    },
+  },
+  {
+    id: 'sourcecraft-examples-new-service',
+    ref: 'examples/new-service',
+    demo: true,
+    job: {
+      id: 'job-new-service',
+      repository_id: 'sourcecraft-examples-new-service',
+      ref: 'examples/new-service',
+      demo: true,
+      status: 'running',
+      created_at: '2026-09-19T08:00:00Z',
+    },
+    report: null,
+  },
+]

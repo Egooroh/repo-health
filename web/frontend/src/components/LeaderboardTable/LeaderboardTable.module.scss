@@ -1,0 +1,72 @@
+@use '../../theme' as theme;
+
+.wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: auto;
+}
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table th {
+  font-size: 10px;
+  letter-spacing: 0.3px;
+  font-weight: 500;
+  color: var(--muted);
+  background: var(--surface-hover);
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+
+  @media (max-width: theme.$bp-sm) {
+    padding: 14px 15px;
+  }
+}
+
+.table td {
+  padding: 21px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+
+  @media (max-width: theme.$bp-sm) {
+    padding: 14px 15px;
+  }
+}
+
+.table tbody tr:last-child td {
+  border: 0;
+}
+
+.table tbody tr:hover {
+  background: var(--surface-hover);
+}
+
+.rank {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.rankFirst {
+  background: var(--surface-hover);
+  color: var(--amber);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin-left: -8px;
+}
+
+.repoLink {
+  font-weight: 600;
+
+  small {
+    display: block;
+    font-size: 10px;
+    color: var(--muted);
+    font-weight: 400;
+    margin-top: 3px;
+  }
+}

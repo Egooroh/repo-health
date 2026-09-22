@@ -1,0 +1,20 @@
+@use '../../theme' as theme;
+
+.banner {
+  margin: 16px 42px 0;
+  background: color-mix(in oklch, var(--amber) 12%, var(--surface));
+  border: 1px solid color-mix(in oklch, var(--amber) 35%, transparent);
+  color: var(--amber);
+  border-radius: 10px;
+  padding: 13px 17px;
+  font-size: 11px;
+  line-height: 1.75;
+
+  @media (max-width: theme.$bp-lg) {
+    margin: 14px 27px 0;
+  }
+
+  @media (max-width: theme.$bp-sm) {
+    margin: 12px 18px 0;
+  }
+}

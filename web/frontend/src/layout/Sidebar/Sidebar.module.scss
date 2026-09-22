@@ -1,0 +1,210 @@
+@use '../../theme' as theme;
+
+.sidebar {
+  width: 252px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: fixed;
+  inset: 0 auto 0 0;
+  display: flex;
+  flex-direction: column;
+  padding: 32px 22px;
+  z-index: 10;
+  overflow-y: auto;
+
+  @media (max-width: theme.$bp-lg) {
+    width: 218px;
+    padding: 29px 16px;
+  }
+
+  @media (max-width: theme.$bp-md) {
+    position: static;
+    width: 100%;
+    padding: 18px 22px;
+    border-bottom: 1px solid var(--border);
+    border-right: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: theme.$bp-sm) {
+    padding: 15px 17px;
+    gap: 10px;
+  }
+}
+
+.brand {
+  display: flex;
+  gap: 11px;
+  align-items: center;
+  line-height: 1.1;
+  font-size: 25px;
+  font-weight: 750;
+  letter-spacing: -1px;
+
+  @media (max-width: theme.$bp-lg) {
+    font-size: 22px;
+  }
+
+  @media (max-width: theme.$bp-md) {
+    font-size: 19px;
+    white-space: nowrap;
+  }
+
+  @media (max-width: theme.$bp-sm) {
+    font-size: 20px;
+  }
+}
+
+.brandLight {
+  font-weight: 430;
+}
+
+.tagline {
+  display: block;
+  letter-spacing: 1.15px;
+  font-size: 8px;
+  color: var(--muted);
+  font-weight: 550;
+  margin-top: 10px;
+
+  @media (max-width: theme.$bp-md) {
+    display: none;
+  }
+}
+
+.mark {
+  background: var(--primary);
+  width: 39px;
+  height: 43px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+
+  svg {
+    width: 30px;
+    fill: none;
+    stroke: white;
+    stroke-width: 2.3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  @media (max-width: theme.$bp-md) {
+    width: 30px;
+    height: 33px;
+
+    svg {
+      width: 25px;
+    }
+  }
+}
+
+.workspaceLabel {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  font-weight: 650;
+  color: var(--muted);
+  margin: 15px 10px 14px;
+
+  @media (max-width: theme.$bp-md) {
+    display: none;
+  }
+}
+
+.nav {
+  display: grid;
+  gap: 6px;
+
+  a {
+    padding: 12px 11px;
+    border-radius: 9px;
+    color: var(--muted);
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    transition: background 0.15s;
+
+    &.active {
+      color: var(--text);
+      background: color-mix(in oklch, var(--primary) 20%, var(--surface));
+      font-weight: 650;
+    }
+
+    &:hover {
+      background: var(--surface-hover);
+    }
+
+    @media (max-width: theme.$bp-md) {
+      font-size: 11px;
+      padding: 8px;
+    }
+  }
+
+  @media (max-width: theme.$bp-md) {
+    display: flex;
+    margin-left: auto;
+    gap: 5px;
+  }
+
+  @media (max-width: theme.$bp-sm) {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+.navIcon {
+  font-size: 23px;
+  line-height: 22px;
+  width: 22px;
+  text-align: center;
+
+  @media (max-width: theme.$bp-md) {
+    display: none;
+  }
+}
+
+.bottom {
+  margin-top: auto;
+
+  @media (max-width: theme.$bp-md) {
+    display: block;
+    width: 100%;
+    margin-top: 0;
+  }
+}
+
+.hideOnNarrow {
+  @media (max-width: theme.$bp-md) {
+    display: none;
+  }
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 23px 1px 0;
+  font-size: 9px;
+  color: var(--muted);
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.version {
+  margin-left: auto;
+  border: 1px solid var(--border);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 8px;
+}

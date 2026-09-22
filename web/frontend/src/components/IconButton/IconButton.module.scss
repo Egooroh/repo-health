@@ -1,0 +1,13 @@
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-hover);
+  border: 0;
+  width: 29px;
+  height: 29px;
+  border-radius: 7px;
+  color: var(--muted);
+  font-size: 21px;
+  line-height: 1;
+}

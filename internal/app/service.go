@@ -17,6 +17,7 @@ type Collector interface {
 }
 type Store interface {
 	Enqueue(context.Context, string, bool, time.Time) (domain.Job, error)
+	EnqueueStale(ctx context.Context, now time.Time, olderThan time.Duration, batchLimit int) (int, error)
 	Claim(context.Context, time.Time) (domain.Job, error)
 	Complete(context.Context, domain.Job, domain.Snapshot, domain.Report) error
 	Fail(context.Context, domain.Job, string, bool) error
@@ -111,6 +112,14 @@ func (s *Service) eligibility(r domain.Report, now time.Time) (bool, string) {
 	return scoring.CurrentEligibility(r, now)
 }
 
+// staleAfter is how long a report may sit before it is queued for a fresh
+// analysis on its own, so the catalog stays current without a manual click.
+const staleAfter = 24 * time.Hour
+
+// staleBatchLimit caps how many stale repositories get re-queued per check,
+// so one big backlog can't crowd out user-submitted analyses.
+const staleBatchLimit = 10
+
 // Run is the single durable-queue worker. Interrupted jobs are recovered at next start.
 func (s *Service) Run(ctx context.Context) error {
 	if err := s.store.Recover(ctx); err != nil {
@@ -118,6 +127,9 @@ func (s *Service) Run(ctx context.Context) error {
 	}
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
+	staleTicker := time.NewTicker(time.Hour)
+	defer staleTicker.Stop()
+	s.refreshStale(ctx)
 	for {
 		if ctx.Err() != nil {
 			return nil
@@ -135,6 +147,22 @@ func (s *Service) Run(ctx context.Context) error {
 			return nil
 		case <-ticker.C:
 		case <-s.wake:
+		case <-staleTicker.C:
+			s.refreshStale(ctx)
+		}
+	}
+}
+
+func (s *Service) refreshStale(ctx context.Context) {
+	n, err := s.store.EnqueueStale(ctx, time.Now().UTC(), staleAfter, staleBatchLimit)
+	if err != nil {
+		s.log.Error("refresh stale repositories", "error", err)
+		return
+	}
+	if n > 0 {
+		select {
+		case s.wake <- struct{}{}:
+		default:
 		}
 	}
 }

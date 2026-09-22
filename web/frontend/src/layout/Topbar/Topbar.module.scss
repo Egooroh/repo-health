@@ -1,0 +1,56 @@
+@use '../../theme' as theme;
+
+.topbar {
+  height: 85px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 42px;
+  background: var(--surface);
+
+  @media (max-width: theme.$bp-lg) {
+    padding: 0 27px;
+  }
+
+  @media (max-width: theme.$bp-md) {
+    height: 70px;
+  }
+
+  @media (max-width: theme.$bp-sm) {
+    padding: 0 18px;
+    gap: 10px;
+  }
+}
+
+.breadcrumbs {
+  font-size: 12px;
+  color: var(--muted);
+
+  span {
+    margin: 0 15px;
+    color: var(--border);
+
+    @media (max-width: theme.$bp-sm) {
+      margin: 0 7px;
+    }
+  }
+
+  strong {
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  @media (max-width: theme.$bp-sm) {
+    font-size: 10px;
+  }
+}
+
+.action {
+  @media (max-width: theme.$bp-sm) {
+    font-size: 10px;
+    padding: 8px 11px;
+    min-height: 36px;
+    gap: 4px;
+  }
+}

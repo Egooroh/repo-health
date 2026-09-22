@@ -1,0 +1,125 @@
+@use '../../theme' as theme;
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  background: var(--accent-panel-bg);
+  color: #fff;
+  border-radius: var(--radius);
+  overflow: hidden;
+  min-height: 257px;
+  margin-bottom: 26px;
+
+  @media (min-width: theme.$bp-xxl) {
+    min-height: 300px;
+  }
+
+  @media (max-width: theme.$bp-sm) {
+    display: block;
+  }
+}
+
+.eyebrow {
+  color: color-mix(in oklch, white 55%, var(--accent-panel-bg));
+}
+
+.content {
+  padding: 35px;
+
+  @media (min-width: theme.$bp-xxl) {
+    padding: 42px;
+  }
+
+  @media (max-width: theme.$bp-md) {
+    padding: 28px;
+  }
+
+  @media (max-width: theme.$bp-sm) {
+    padding: 25px;
+  }
+}
+
+.content h2 {
+  font-size: 28px;
+  line-height: 1.35;
+  letter-spacing: -0.7px;
+  font-weight: 550;
+  margin: 13px 0;
+
+  @media (max-width: theme.$bp-sm) {
+    font-size: 25px;
+  }
+}
+
+.content p {
+  font-size: 12px;
+  line-height: 1.8;
+  color: color-mix(in oklch, white 75%, var(--accent-panel-bg));
+  max-width: 390px;
+}
+
+.cta {
+  margin-top: 10px;
+}
+
+.visual {
+  display: grid;
+  place-items: center;
+  position: relative;
+  background: color-mix(in oklch, black 20%, var(--accent-panel-bg));
+
+  @media (max-width: theme.$bp-md) {
+    overflow: hidden;
+  }
+
+  @media (max-width: theme.$bp-sm) {
+    display: none;
+  }
+}
+
+.orbit {
+  width: 175px;
+  height: 175px;
+  border: 1px solid var(--accent-panel-line);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  position: relative;
+
+  &:before {
+    content: '';
+    position: absolute;
+    width: 215px;
+    height: 215px;
+    border: 1px dashed var(--accent-panel-line);
+    border-radius: 50%;
+  }
+
+  &:after {
+    content: '';
+    width: 135px;
+    height: 135px;
+    position: absolute;
+    border: 1px solid var(--accent-panel-line);
+    border-radius: 50%;
+  }
+}
+
+.pulse {
+  width: 125px;
+  stroke: var(--accent-panel-highlight);
+  fill: none;
+  stroke-width: 2.5;
+}
+
+.label {
+  position: absolute;
+  background: var(--accent-panel-highlight);
+  color: var(--accent-panel-bg);
+  padding: 5px 10px;
+  border-radius: 7px;
+  font-size: 10px;
+  z-index: 1;
+  right: -20px;
+  bottom: 12px;
+}

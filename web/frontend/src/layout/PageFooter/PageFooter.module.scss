@@ -1,0 +1,29 @@
+@use '../../theme' as theme;
+
+.footer {
+  padding: 23px 42px;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 9px;
+  color: var(--muted);
+
+  a {
+    color: var(--blue);
+  }
+
+  @media (max-width: theme.$bp-md) {
+    padding: 20px 27px;
+  }
+
+  @media (max-width: theme.$bp-sm) {
+    display: block;
+    padding: 20px 18px;
+
+    > span {
+      display: block;
+      margin: 4px 0;
+    }
+  }
+}

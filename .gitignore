@@ -4,3 +4,5 @@
 /.env
 *.exe
 coverage.out
+/web/dist/
+/web/frontend/node_modules/

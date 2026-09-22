@@ -31,6 +31,7 @@ try {
     }
     if ($Runtime -eq 'Go') {
         if (-not (Get-Command go -ErrorAction SilentlyContinue)) { throw 'Go не найден. Установите Go по версии из go.mod или выберите -Runtime Docker.' }
+        if (-not (Get-Command npm -ErrorAction SilentlyContinue)) { throw 'npm не найден. Он нужен для сборки веб-интерфейса (web/dist встраивается в бинарный файл). Установите Node.js или выберите -Runtime Docker.' }
         $probe = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Loopback, $Port)
         try { $probe.Start() }
         catch { throw "Порт $Port занят. Остановите предыдущий запуск через Ctrl+C или выберите -Port 8081. Другие процессы не остановлены." }
@@ -68,6 +69,13 @@ try {
         $suffix = ''
         if ($env:OS -eq 'Windows_NT') { $suffix = '.exe' }
         $executable = Join-Path $buildDir ('repo-health-' + [guid]::NewGuid().ToString('N') + $suffix)
+        Write-Host 'Сборка веб-интерфейса...'
+        if (-not (Test-Path (Join-Path $root 'web/frontend/node_modules'))) {
+            & npm --prefix (Join-Path $root 'web/frontend') install
+            if ($LASTEXITCODE -ne 0) { throw 'Не удалось установить зависимости веб-интерфейса.' }
+        }
+        & npm --prefix (Join-Path $root 'web/frontend') run build
+        if ($LASTEXITCODE -ne 0) { throw 'Сборка веб-интерфейса не удалась.' }
         Write-Host 'Сборка текущих исходников...'
         & go build -trimpath -o $executable ./cmd/repo-health
         if ($LASTEXITCODE -ne 0) { throw 'Сборка не удалась. Проверьте ошибку Go выше, версию из go.mod и доступ к зависимостям. Старый бинарный файл не запускается.' }

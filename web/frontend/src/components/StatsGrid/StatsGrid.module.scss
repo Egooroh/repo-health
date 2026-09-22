@@ -1,0 +1,12 @@
+@use '../../theme' as theme;
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+
+  @media (max-width: theme.$bp-sm) {
+    gap: 8px;
+  }
+}

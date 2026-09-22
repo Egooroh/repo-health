@@ -1,0 +1,52 @@
+@use '../../theme' as theme;
+
+.recommendation {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  gap: 15px;
+  align-items: start;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+
+  &:last-child {
+    border: 0;
+    padding-bottom: 0;
+  }
+
+  h3 {
+    font-size: 13px;
+    margin: 1px 0 6px;
+    font-weight: 600;
+  }
+
+  p {
+    font-size: 11px;
+    color: var(--muted);
+    margin: 5px 0;
+  }
+
+  @media (max-width: theme.$bp-sm) {
+    grid-template-columns: 28px minmax(0, 1fr);
+    gap: 10px;
+
+    > *:last-child {
+      grid-column: 2;
+      justify-self: start;
+    }
+  }
+}
+
+.index {
+  width: 29px;
+  height: 29px;
+  background: var(--surface-hover);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.action {
+  color: var(--text);
+}

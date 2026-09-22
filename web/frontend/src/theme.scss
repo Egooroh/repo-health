@@ -1,0 +1,136 @@
+
+$bp-xxl: 1600px;
+$bp-lg: 1200px;
+$bp-md: 850px;
+$bp-sm: 600px;
+
+:root {
+  color-scheme: dark;
+
+  --bg: #0a0d12;
+  --surface: #10151f;
+  --surface-hover: #141b25;
+  --border: #1f2a3a;
+  --text: #f1f5f9;
+  --muted: #94a3b8;
+  --primary: oklch(54.6% 0.245 262.881);
+  --blue: oklch(62.3% 0.214 259.815);
+  --green: oklch(76.5% 0.177 163.223);
+  --amber: oklch(82.8% 0.189 84.429);
+  --red: oklch(71.2% 0.194 13.428);
+  --dark: #0d121acc;
+  --button-alt-bg: #fff;
+  --button-alt-border: transparent;
+  --button-alt-text: #0d121a;
+
+  --accent-panel-bg: oklch(28% 0.12 262.881);
+  --accent-panel-line: rgba(255, 255, 255, 0.15);
+  --accent-panel-highlight: oklch(62.3% 0.214 259.815);
+
+  --line: var(--border);
+  --ink: var(--text);
+  --radius: 16px;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
+  font-synthesis: none;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #f6f7f3;
+  --surface: #ffffff;
+  --surface-hover: #f3f5f0;
+  --border: #e3e8e1;
+  --text: #172d27;
+  --muted: #6f7c75;
+  --primary: oklch(54.6% 0.245 262.881);
+  --blue: oklch(45% 0.2 259.815);
+  --green: oklch(45% 0.15 163.223);
+  --amber: oklch(55% 0.17 84.429);
+  --red: oklch(50% 0.2 13.428);
+  --dark: #0d121acc;
+  --button-alt-bg: #fff;
+  --button-alt-border: var(--border);
+  --button-alt-text: var(--text);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button,
+a,
+input,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+  touch-action: manipulation;
+}
+
+button {
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: wait;
+  }
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    color: var(--primary);
+  }
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+h1 {
+  font-size: 33px;
+  line-height: 1.25;
+  letter-spacing: -1px;
+  margin: 7px 0 9px;
+  font-weight: 650;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *:before,
+  *:after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

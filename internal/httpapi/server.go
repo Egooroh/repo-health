@@ -4,9 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"io/fs"
 	"log/slog"
 	"net/http"
 	"net/url"
+	"path"
 	"strings"
 	"sync"
 	"time"
@@ -55,19 +57,32 @@ func New(service *app.Service, log *slog.Logger, tokenConfigured bool) http.Hand
 	mux.HandleFunc("POST /api/v1/analyses", s.analyze)
 	mux.HandleFunc("POST /api/v1/demo", s.seedDemo)
 	mux.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) { writeError(w, 404, "Метод API не найден.") })
-	assets := http.FileServer(http.FS(web.Files))
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != "GET" && r.Method != "HEAD" {
+	mux.HandleFunc("/", spaHandler(web.Dist))
+	return s.middleware(mux)
+}
+
+// spaHandler serves the built React app: real files (JS/CSS/favicon) go
+// straight through, and any other extensionless path — a client-side route
+// like /repositories/{id} — falls back to index.html so a full page load or
+// refresh still renders the right page instead of 404ing.
+func spaHandler(dist fs.FS) http.HandlerFunc {
+	assets := http.FileServerFS(dist)
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet && r.Method != http.MethodHead {
 			writeError(w, 405, "Метод не поддерживается.")
 			return
 		}
-		if r.URL.Path != "/" && r.URL.Path != "/app.js" && r.URL.Path != "/access.js" && r.URL.Path != "/styles.css" {
-			http.NotFound(w, r)
+		name := path.Clean(strings.TrimPrefix(r.URL.Path, "/"))
+		if _, err := fs.Stat(dist, name); err != nil {
+			if strings.Contains(path.Base(name), ".") {
+				http.NotFound(w, r)
+				return
+			}
+			http.ServeFileFS(w, r, dist, "index.html")
 			return
 		}
 		assets.ServeHTTP(w, r)
-	})
-	return s.middleware(mux)
+	}
 }
 
 func (s *Server) list(leaderboard bool) http.HandlerFunc {

@@ -1,0 +1,110 @@
+@use '../../theme' as theme;
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  transition:
+    box-shadow 0.18s,
+    border-color 0.18s;
+
+  &:hover {
+    border-color: var(--primary);
+    box-shadow: 0 7px 25px rgba(0, 0, 0, 0.35);
+  }
+
+  h3 {
+    font-size: 17px;
+    line-height: 1.35;
+    margin: 18px 0 8px;
+    letter-spacing: -0.3px;
+    overflow-wrap: anywhere;
+
+    span {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 400;
+      display: block;
+      margin-bottom: 3px;
+    }
+  }
+
+  @media (min-width: theme.$bp-xxl) {
+    padding: 27px;
+  }
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.icon {
+  width: 37px;
+  height: 37px;
+  border-radius: 10px;
+  background: var(--surface-hover);
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  color: var(--blue);
+}
+
+.description {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0 0 18px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 53px;
+
+  @media (max-width: theme.$bp-sm) {
+    min-height: 0;
+  }
+}
+
+.scoreRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid var(--border);
+  padding-top: 17px;
+  margin-top: auto;
+}
+
+.scoreText {
+  font-size: 30px;
+  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -1px;
+
+  small {
+    font-size: 12px;
+    letter-spacing: 0;
+    color: var(--muted);
+    font-weight: 400;
+  }
+}
+
+.scoreCaption {
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+  padding-top: 13px;
+  color: var(--muted);
+  font-size: 10px;
+}
