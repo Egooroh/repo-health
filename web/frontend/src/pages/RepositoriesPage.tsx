@@ -47,7 +47,7 @@ export default function RepositoriesPage() {
           {
             label: (
               <>
-                Всего репозиториев <span aria-hidden="true">▦</span>
+                Всего репозиториев
               </>
             ),
             value: items.length,
@@ -56,7 +56,7 @@ export default function RepositoriesPage() {
           {
             label: (
               <>
-                Средняя оценка <span aria-hidden="true">↗</span>
+                Средняя оценка
               </>
             ),
             value: (
@@ -69,7 +69,7 @@ export default function RepositoriesPage() {
           {
             label: (
               <>
-                Рекомендации <span aria-hidden="true">≡</span>
+                Рекомендации
               </>
             ),
             value: recommendations,

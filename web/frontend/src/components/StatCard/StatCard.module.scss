@@ -2,7 +2,7 @@
 
 .stat {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   border-radius: 12px;
   padding: 20px 22px;
 
@@ -13,12 +13,12 @@
 
 .label {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   display: flex;
   justify-content: space-between;
 
   @media (max-width: theme.$bp-sm) {
-    font-size: 9px;
+    font-size: 12px;
     min-height: 28px;
   }
 }
@@ -43,11 +43,11 @@
 }
 
 .note {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--muted);
   margin-top: 2px;
 
   @media (max-width: theme.$bp-sm) {
-    font-size: 8px;
+    font-size: 10px;
   }
 }

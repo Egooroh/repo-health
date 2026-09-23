@@ -14,7 +14,7 @@ export default function DemoPanel({ demoMode, pending, onToggle }: DemoPanelProp
       <SmallLabel>ПОЗНАКОМИТЬСЯ С СЕРВИСОМ</SmallLabel>
       <p>Три примера. Разное состояние. Понятные причины.</p>
       <Button variant="white" full className={styles.toggle} onClick={onToggle} disabled={pending}>
-        {demoMode ? 'Реальные репозитории' : pending ? 'Загружаем демо…' : 'Посмотреть демо'} <span aria-hidden="true">↗</span>
+        {demoMode ? 'Реальные репозитории' : pending ? 'Загружаем демо…' : 'Посмотреть демо'}
       </Button>
     </div>
   )

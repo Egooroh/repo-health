@@ -23,7 +23,7 @@ export default function Sidebar({ demoMode, demoPending, onToggleDemo, session, 
     return (
         <div className={styles.sidebar}>
             <NavLink className={styles.brand} to="/repositories" aria-label="Repo Health — главная">
-        <span className={styles.mark} aria-hidden="true">
+        <span className={styles.mark} >
           <svg viewBox="0 0 32 32">
             <path d="M3 17h7l4-9 5 17 4-8h6" />
           </svg>
@@ -37,21 +37,12 @@ export default function Sidebar({ demoMode, demoPending, onToggleDemo, session, 
             <div className={styles.workspaceLabel}>РАБОЧЕЕ ПРОСТРАНСТВО</div>
             <nav className={styles.nav} aria-label="Основная навигация">
                 <NavLink to="/repositories" className={navLinkClassName}>
-          <span className={styles.navIcon} aria-hidden="true">
-            ▦
-          </span>{' '}
                     Репозитории
                 </NavLink>
                 <NavLink to="/leaderboard" className={navLinkClassName}>
-          <span className={styles.navIcon} aria-hidden="true">
-            ↗
-          </span>{' '}
                     Рейтинг
                 </NavLink>
                 <NavLink to="/methodology" className={navLinkClassName}>
-          <span className={styles.navIcon} aria-hidden="true">
-            ≡
-          </span>{' '}
                     Как считается оценка
                 </NavLink>
             </nav>

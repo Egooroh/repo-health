@@ -1,9 +1,9 @@
 @use '../../theme' as theme;
 
 .sidebar {
-  width: 252px;
+  width: 300px;
   background: var(--surface);
-  border-right: 1px solid var(--border);
+  border-right: 2px solid var(--border);
   position: fixed;
   inset: 0 auto 0 0;
   display: flex;
@@ -11,9 +11,12 @@
   padding: 32px 22px;
   z-index: 10;
   overflow-y: auto;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 
   @media (max-width: theme.$bp-lg) {
-    width: 218px;
+    width: 250px;
     padding: 29px 16px;
   }
 
@@ -21,7 +24,7 @@
     position: static;
     width: 100%;
     padding: 18px 22px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 2px solid var(--border);
     border-right: 0;
     flex-direction: row;
     align-items: center;
@@ -65,7 +68,7 @@
 .tagline {
   display: block;
   letter-spacing: 1.15px;
-  font-size: 8px;
+  font-size: 12px;
   color: var(--muted);
   font-weight: 550;
   margin-top: 10px;
@@ -104,7 +107,7 @@
 }
 
 .workspaceLabel {
-  font-size: 9px;
+  font-size: 12px;
   letter-spacing: 1.5px;
   font-weight: 650;
   color: var(--muted);
@@ -140,7 +143,7 @@
     }
 
     @media (max-width: theme.$bp-md) {
-      font-size: 11px;
+      font-size: 12px;
       padding: 8px;
     }
   }
@@ -188,8 +191,8 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  margin: 23px 1px 0;
-  font-size: 9px;
+  margin: 23px 2px 0;
+  font-size: 12px;
   color: var(--muted);
 }
 
@@ -203,8 +206,8 @@
 
 .version {
   margin-left: auto;
-  border: 1px solid var(--border);
-  padding: 1px 5px;
+  border: 2px solid var(--border);
+  padding: 2px 5px;
   border-radius: 4px;
-  font-size: 8px;
+  font-size: 12px;
 }

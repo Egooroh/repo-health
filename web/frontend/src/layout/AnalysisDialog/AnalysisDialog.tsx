@@ -96,7 +96,7 @@ const AnalysisDialog = forwardRef<HTMLDialogElement, Props>(({ onClose, onSyncDe
           'Запускаем…'
         ) : (
           <>
-            Запустить анализ <span aria-hidden="true">→</span>
+            Запустить анализ
           </>
         )}
       </Button>

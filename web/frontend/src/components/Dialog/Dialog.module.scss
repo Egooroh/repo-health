@@ -1,14 +1,13 @@
 @use '../../theme' as theme;
 
 .dialog {
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   border-radius: 20px;
   max-width: 490px;
   width: calc(100% - 32px);
   padding: 30px;
   background: var(--surface);
   color: var(--text);
-  box-shadow: 0 24px 100px rgba(0, 0, 0, 0.5);
 
   &::backdrop {
     background: rgba(10, 13, 18, 0.7);
@@ -26,14 +25,14 @@
   label {
     display: block;
     margin: 24px 0 8px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
   }
 
   input {
     width: 100%;
     padding: 12px;
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     border-radius: 9px;
     background: var(--bg);
     font-size: 13px;
@@ -69,6 +68,6 @@
   text-transform: uppercase;
   letter-spacing: 1.9px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
 }

@@ -1,7 +1,7 @@
 @use '../theme' as theme;
 
 .backLink {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
   display: inline-block;
   margin-bottom: 18px;
@@ -28,7 +28,7 @@
   text-transform: uppercase;
   letter-spacing: 1.9px;
   color: var(--muted);
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
 }
 
@@ -93,6 +93,6 @@
 
 .explainer {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   margin: 15px 0;
 }

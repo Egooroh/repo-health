@@ -2,23 +2,22 @@
 
 .panel {
   padding: 14px 0;
-  border-top: 1px solid var(--border);
 
   p {
-    font-size: 12px;
+    font-size: 14px;
     line-height: 1.5;
   }
 
   label {
     display: block;
-    font-size: 11px;
+    font-size: 12px;
     margin: 8px 0;
   }
 
   select {
     width: 100%;
     padding: 9px;
-    border: 1px solid var(--border);
+    border: 2px solid var(--border);
     border-radius: 8px;
     background: var(--bg);
     color: var(--text);
@@ -54,7 +53,7 @@
 .connect {
   width: 100%;
   margin-bottom: 8px;
-  font-size: 11px;
+  font-size: 12px;
 
   @media (max-width: theme.$bp-md) {
     width: auto;

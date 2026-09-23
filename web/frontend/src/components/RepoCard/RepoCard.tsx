@@ -17,9 +17,6 @@ export default function RepoCard({ project }: { project: Project }) {
   return (
     <div className={styles.card}>
       <div className={styles.top}>
-        <span className={styles.icon} aria-hidden="true">
-          ⌘
-        </span>
         <StatusTag project={project} />
       </div>
       <h3>
@@ -47,7 +44,7 @@ export default function RepoCard({ project }: { project: Project }) {
           {report?.repository.language || 'Язык не указан'}
           {project.demo ? ' · Демо' : ''}
         </span>
-        <TextLink to={`/repositories/${project.id}`}>Подробнее ↗</TextLink>
+        <TextLink to={`/repositories/${project.id}`}>Подробнее</TextLink>
       </div>
     </div>
   )

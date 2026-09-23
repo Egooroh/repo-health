@@ -13,7 +13,6 @@ export default function WelcomeHero({ onOpenAnalysis }: { onOpenAnalysis: () => 
         </h2>
         <p>Добавьте репозиторий SourceCraft. Мы проверим документацию, CI и работу с задачами — и объясним каждый балл.</p>
         <Button variant="white" className={styles.cta} onClick={onOpenAnalysis}>
-          Добавить первый репозиторий <span aria-hidden="true">→</span>
         </Button>
       </div>
       <div className={styles.visual} aria-hidden="true">

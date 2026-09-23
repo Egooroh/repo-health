@@ -2,7 +2,7 @@
 
 .wrap {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   border-radius: 14px;
   overflow: auto;
 }
@@ -15,13 +15,13 @@
 }
 
 .table th {
-  font-size: 10px;
+  font-size: 14px;
   letter-spacing: 0.3px;
   font-weight: 500;
   color: var(--muted);
   background: var(--surface-hover);
   padding: 14px 20px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid var(--border);
 
   @media (max-width: theme.$bp-sm) {
     padding: 14px 15px;
@@ -30,8 +30,8 @@
 
 .table td {
   padding: 21px 20px;
-  border-bottom: 1px solid var(--border);
-  font-size: 12px;
+  border-bottom: 2px solid var(--border);
+  font-size: 14px;
 
   @media (max-width: theme.$bp-sm) {
     padding: 14px 15px;
@@ -47,7 +47,7 @@
 }
 
 .rank {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--muted);
 }
 
@@ -64,7 +64,7 @@
 
   small {
     display: block;
-    font-size: 10px;
+    font-size: 14px;
     color: var(--muted);
     font-weight: 400;
     margin-top: 3px;

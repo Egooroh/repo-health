@@ -10,18 +10,18 @@
 
 .explainer {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
   margin: 15px 0;
 }
 
 .coverage {
-  border-top: 1px solid var(--line);
+  border-top: 2px solid var(--line);
   margin-top: 22px;
   padding-top: 17px;
   text-align: left;
 
   p {
-    font-size: 10px;
+    font-size: 14px;
     color: var(--muted);
     margin: 8px 0;
   }
@@ -30,6 +30,6 @@
 .coverageLine {
   display: flex;
   justify-content: space-between;
-  font-size: 11px;
+  font-size: 12px;
   margin-bottom: 9px;
 }

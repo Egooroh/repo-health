@@ -23,9 +23,6 @@ export default function RepositoryDetailPage() {
   const { id } = useParams<{ id: string }>()
   const { onSyncDemo, personalMode } = useLayoutContext()
   const { project, loading, error, notFound, reload } = useProject(id, personalMode)
-
-  // Deep-linking straight into a demo repository should flip the sidebar's
-  // demo toggle to match, without re-triggering the /demo seed request.
   const projectDemo = project?.demo
   useEffect(() => {
     if (projectDemo != null) onSyncDemo(projectDemo)

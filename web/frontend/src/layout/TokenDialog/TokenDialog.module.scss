@@ -1,11 +1,11 @@
 .hint {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--muted);
   margin: 8px 0;
 }
 
 .privacy {
-  font-size: 10px;
+  font-size: 14px;
   color: var(--muted);
   margin: 25px 0 17px;
   line-height: 1.65;
@@ -14,9 +14,9 @@
 .error {
   background: color-mix(in oklch, var(--red) 12%, var(--surface));
   color: var(--red);
-  border: 1px solid color-mix(in oklch, var(--red) 35%, transparent);
+  border: 2px solid color-mix(in oklch, var(--red) 35%, transparent);
   border-radius: 8px;
   padding: 11px;
   margin: 12px 0;
-  font-size: 12px;
+  font-size: 14px;
 }

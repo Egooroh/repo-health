@@ -13,7 +13,7 @@ export default function Topbar({ breadcrumb, onOpenAnalysis }: TopbarProps) {
         SourceCraft <span>/</span> <strong>{breadcrumb}</strong>
       </div>
       <Button className={styles.action} onClick={onOpenAnalysis}>
-        <span aria-hidden="true">＋</span> Анализировать репозиторий
+        Анализировать репозиторий
       </Button>
     </div>
   )

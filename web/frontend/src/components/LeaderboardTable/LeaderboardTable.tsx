@@ -49,7 +49,7 @@ export default function LeaderboardTable({ items }: { items: Project[] }) {
               </td>
               <td>
                 <TextLink to={`/repositories/${project.id}`} aria-label={`Отчёт ${project.ref}`}>
-                  Подробнее ↗
+                  Подробнее
                 </TextLink>
               </td>
             </tr>

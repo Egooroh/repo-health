@@ -35,7 +35,7 @@ export default function LeaderboardPage() {
           {
             label: (
               <>
-                В рейтинге <span aria-hidden="true">▦</span>
+                В рейтинге
               </>
             ),
             value: items.length,
@@ -44,7 +44,7 @@ export default function LeaderboardPage() {
           {
             label: (
               <>
-                Средняя оценка <span aria-hidden="true">↗</span>
+                Средняя оценка
               </>
             ),
             value: (
@@ -57,7 +57,7 @@ export default function LeaderboardPage() {
           {
             label: (
               <>
-                Рекомендации <span aria-hidden="true">≡</span>
+                Рекомендации
               </>
             ),
             value: recommendations,

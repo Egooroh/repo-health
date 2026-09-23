@@ -1,7 +1,7 @@
 .error {
   padding: 35px;
   background: var(--surface);
-  border: 1px solid color-mix(in oklch, var(--red) 35%, transparent);
+  border: 2px solid color-mix(in oklch, var(--red) 35%, transparent);
   border-radius: 12px;
   text-align: center;
 }

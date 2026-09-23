@@ -2,9 +2,8 @@
 
 .banner {
   background: color-mix(in oklch, var(--amber) 15%, var(--surface));
-  border-bottom: 1px solid color-mix(in oklch, var(--amber) 35%, transparent);
   padding: 10px 42px;
-  font-size: 12px;
+  font-size: 14px;
   color: var(--amber);
 
   button {
@@ -13,7 +12,7 @@
     color: inherit;
     text-decoration: underline;
     margin-left: 12px;
-    font-size: 11px;
+    font-size: 12px;
     cursor: pointer;
   }
 
@@ -23,7 +22,7 @@
 
   @media (max-width: theme.$bp-sm) {
     padding: 10px 18px;
-    font-size: 10px;
+    font-size: 14px;
 
     button {
       margin-left: 0;

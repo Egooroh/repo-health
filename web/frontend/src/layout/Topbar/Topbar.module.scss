@@ -2,7 +2,7 @@
 
 .topbar {
   height: 85px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 2px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -24,7 +24,7 @@
 }
 
 .breadcrumbs {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--muted);
 
   span {
@@ -42,13 +42,13 @@
   }
 
   @media (max-width: theme.$bp-sm) {
-    font-size: 10px;
+    font-size: 14px;
   }
 }
 
 .action {
   @media (max-width: theme.$bp-sm) {
-    font-size: 10px;
+    font-size: 14px;
     padding: 8px 11px;
     min-height: 36px;
     gap: 4px;

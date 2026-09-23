@@ -50,7 +50,7 @@ const TokenDialog = forwardRef<HTMLDialogElement, Props>(({ onClose, session }, 
       <input id="sourcecraft-token" name="token" type="password" required maxLength={2048} autoComplete="off" autoCapitalize="none" spellCheck={false} />
       <p className={styles.hint}>
         <a href="https://sourcecraft.dev/portal/docs/ru/sourcecraft/security/pat" target="_blank" rel="noopener noreferrer">
-          Как создать токен в SourceCraft ↗
+          Как создать токен в SourceCraft
         </a>
       </p>
       <p className={styles.privacy}>

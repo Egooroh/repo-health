@@ -52,7 +52,7 @@
 }
 
 .content p {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.8;
   color: color-mix(in oklch, white 75%, var(--accent-panel-bg));
   max-width: 390px;
@@ -80,7 +80,7 @@
 .orbit {
   width: 175px;
   height: 175px;
-  border: 1px solid var(--accent-panel-line);
+  border: 2px solid var(--accent-panel-line);
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -91,7 +91,7 @@
     position: absolute;
     width: 215px;
     height: 215px;
-    border: 1px dashed var(--accent-panel-line);
+    border: 2px dashed var(--accent-panel-line);
     border-radius: 50%;
   }
 
@@ -100,7 +100,7 @@
     width: 135px;
     height: 135px;
     position: absolute;
-    border: 1px solid var(--accent-panel-line);
+    border: 2px solid var(--accent-panel-line);
     border-radius: 50%;
   }
 }
@@ -118,7 +118,7 @@
   color: var(--accent-panel-bg);
   padding: 5px 10px;
   border-radius: 7px;
-  font-size: 10px;
+  font-size: 14px;
   z-index: 1;
   right: -20px;
   bottom: 12px;
